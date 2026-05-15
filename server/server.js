@@ -19,7 +19,13 @@ const port = 3000;
 const enka = new EnkaClient({ cacheDirectory: './cache' });
 enka.cachedAssetsManager.cacheDirectorySetup();
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors({
+    origin: [
+        'http://localhost:5173',
+        process.env.FRONTEND_URL,
+        /\.vercel\.app$/
+    ].filter(Boolean)
+}));
 app.use(express.json());
 
 // ══════════════════════════════════════════════════════════
@@ -28,7 +34,10 @@ app.use(express.json());
 let db;
 (async () => {
     console.log('[ЯДРО] Ініціалізація бази даних...');
-    db = await open({ filename: './database.sqlite', driver: sqlite3.Database });
+    const DB_PATH = process.env.NODE_ENV === 'production'
+    ? '/app/data/database.sqlite'
+    : './database.sqlite';
+db = await open({ filename: DB_PATH, driver: sqlite3.Database });
 
     await db.exec(`CREATE TABLE IF NOT EXISTS builds (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

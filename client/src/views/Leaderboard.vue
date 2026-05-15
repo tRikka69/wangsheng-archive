@@ -100,7 +100,7 @@ const t = computed(() => translations[currentLang.value])
 onMounted(async () => {
   console.log(`[ЛІДЕРБОРД] Завантаження | lang: ${currentLang.value}`)
   try {
-    const res = await fetch(`http://localhost:3000/api/leaderboard?lang=${currentLang.value}`)
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/leaderboard?lang=${currentLang.value}`)
     if (res.ok) { chars.value = await res.json(); console.log(`[ЛІДЕРБОРД] ${chars.value.length} персонажів`) }
     else { console.error(`[ЛІДЕРБОРД] ${res.status}`) }
   } catch (e) { console.error('[ЛІДЕРБОРД]', e) }

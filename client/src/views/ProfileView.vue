@@ -318,7 +318,7 @@ const fetchData = async (forceRefresh=false) => {
   isLoading.value=true; errorMessage.value=null;
   console.log(`[ПРОФІЛЬ] UID:${currentUid} force:${forceRefresh}`);
   try {
-    const res = await fetch(`http://localhost:3000/api/user/${currentUid}?refresh=${forceRefresh}`);
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/user/${currentUid}?refresh=${forceRefresh}`);
     if(res.status===429){const d=await res.json();updateTimer(d.nextRefreshReadyAt);return;}
     if(!res.ok){const d=await res.json().catch(()=>({error:'Error'}));throw new Error(d.error||'Profile not found');}
     playerData.value=await res.json();

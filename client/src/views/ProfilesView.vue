@@ -286,7 +286,7 @@ async function load() {
   console.log(`[ПРОФІЛІ] Завантаження | page:${currentPage.value} sort:${currentSort.value}`)
   try {
     const res = await fetch(
-      `http://localhost:3000/api/profiles?page=${currentPage.value}&sort=${currentSort.value}&lang=${currentLang.value}`
+      `${import.meta.env.VITE_API_URL}/api/profiles?page=${currentPage.value}&sort=${currentSort.value}&lang=${currentLang.value}`
     )
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()

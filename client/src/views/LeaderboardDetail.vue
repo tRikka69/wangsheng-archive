@@ -288,7 +288,7 @@ async function loadData() {
   console.log(`[ДЕТАЛІ] ${charName} | sort:${sortParam} page:${currentPage.value}`)
   try {
     const res = await fetch(
-      `http://localhost:3000/api/leaderboard/${encoded}?sort=${sortParam}&page=${currentPage.value}&lang=${currentLang.value}`
+      `${import.meta.env.VITE_API_URL}/api/leaderboard/${encoded}?sort=${sortParam}&page=${currentPage.value}&lang=${currentLang.value}`
     )
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const body = await res.json()
