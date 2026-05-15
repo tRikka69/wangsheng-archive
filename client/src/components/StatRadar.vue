@@ -23,9 +23,6 @@ const props = defineProps<{ stats: BuildStats; eliteStats: BuildStats; lang?: st
 
 const statKeys: (keyof BuildStats)[] = ['critRate','critDamage','hp','attack','defense','mastery','er'];
 
-// ── Human-readable format per stat ──
-// hp, attack, defense, mastery — show as integer
-// critRate, critDamage, er — show as X.X% (already stored as percentage values)
 function fmtStat(key: keyof BuildStats, value: number): string {
   if (['critRate','critDamage','er'].includes(key)) {
     return value.toFixed(1) + '%';
@@ -39,8 +36,6 @@ const chartData = computed(() => {
     ? ['Крит. Шанс','Крит. Урон','HP','Сила атаки','Защита','Мастерство','Восст. энергии']
     : ['CRIT Rate','CRIT DMG','HP','ATK','DEF','EM','Energy Recharge'];
 
-  // Normalize each stat against its own top-1% reference
-  // Cap at 120 to allow "exceeding" to show visually
   const norm = statKeys.map(k => {
     const u = props.stats[k]      ?? 0;
     const e = props.eliteStats[k] ?? 0;
@@ -111,13 +106,16 @@ const chartOptions = computed(() => {
         borderWidth: 1,
         callbacks: {
           label: function(ctx: any) {
-            const key   = statKeys[ctx.dataIndex];
+            // Explicit non-null guard — fixes TS2538 "undefined cannot be index type"
+            const idx = ctx.dataIndex as number;
+            const key: keyof BuildStats | undefined = statKeys[idx];
+            if (key === undefined) return '';
+
             const uVal  = props.stats[key]      ?? 0;
             const eVal  = props.eliteStats[key] ?? 0;
-            const label = ctx.dataset.label || '';
+            const label = (ctx.dataset.label as string) || '';
 
             if (ctx.datasetIndex === 0) {
-              // Show precise user value, and precise elite reference — no Math.round that causes 299.x → 300
               const uStr = fmtStat(key, uVal);
               const eStr = fmtStat(key, eVal);
               const pct  = eVal > 0 ? ((uVal / eVal) * 100).toFixed(0) : '—';

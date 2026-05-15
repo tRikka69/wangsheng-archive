@@ -59,20 +59,20 @@
               <span class="badge-fship">🤍 {{ char.friendship }}</span>
             </div>
             <div class="rank-box">
-              <div v-if="SPECIAL_CHARS.has(char.key) && char.specialDmgRank !== null">
+              <div v-if="(char.key === 'Furina' || char.key === 'Navia') && char.specialDmgRank !== null">
                 <template v-if="getBestRankType(char) === 'special'">
-                  <span class="top-text">{{ t.top }} {{ ((char.specialDmgRank / char.total) * 100).toFixed(2) }}%</span>
+                  <span class="top-text">{{ t.top }} {{ ((Number(char.specialDmgRank) / Number(char.total)) * 100).toFixed(2) }}%</span>
                   <span class="rank-text">{{ char.specialDmgRank }}/{{ char.total }}</span>
-                  <span class="rank-tag skill-tag">{{ char.key === 'Furina' ? 'E DMG' : 'ROTATION' }}</span>
+                  <span class="rank-tag skill-tag">{{ char.key === 'Navia' ? 'ROTATION' : 'E DMG' }}</span>
                 </template>
                 <template v-else>
-                  <span class="top-text">{{ t.top }} {{ ((char.rank / char.total) * 100).toFixed(2) }}%</span>
+                  <span class="top-text">{{ t.top }} {{ ((Number(char.rank) / Number(char.total)) * 100).toFixed(2) }}%</span>
                   <span class="rank-text">{{ char.rank }}/{{ char.total }}</span>
                   <span class="rank-tag hp-tag">{{ char.key === 'Furina' ? 'HP' : 'ATK' }}</span>
                 </template>
               </div>
               <div v-else>
-                <span class="top-text">{{ t.top }} {{ ((char.rank / char.total) * 100).toFixed(2) }}%</span>
+                <span class="top-text">{{ t.top }} {{ ((Number(char.rank) / Number(char.total)) * 100).toFixed(2) }}%</span>
                 <span class="rank-text">{{ char.rank }}/{{ char.total }}</span>
               </div>
             </div>
@@ -96,58 +96,13 @@
 
             <div class="panel-header-right">
               <button
-                v-if="SPECIAL_CHARS.has(activeCharacter.key)"
+                v-if="activeCharacter.key === 'Furina' || activeCharacter.key === 'Navia'"
                 @click="openSpecialLeaderboard"
                 class="leaderboard-link-btn"
               >
-                ⚔️ {{ getSpecialLbLabel(activeCharacter.key) }}
+                ⚔️ {{ currentLang === 'ru' ? (activeCharacter.key === 'Navia' ? 'Топ ротации' : 'Топ по E DMG') : (activeCharacter.key === 'Navia' ? 'Rotation Leaderboard' : 'E DMG Leaderboard') }}
               </button>
               <button @click="closeBuild" class="close-btn">✕ {{ t.close }}</button>
-            </div>
-          </div>
-
-          <!-- ══ SPECIAL DMG PANEL (Furina / Navia / Skirk / ...) ══ -->
-          <div
-            v-if="activeCharacter.specialDmg !== null && activeCharacter.specialDmg !== undefined && SPECIAL_CHARS.has(activeCharacter.key)"
-            class="special-dmg-panel"
-          >
-            <div class="sdmg-title">
-              ⚔️ {{ getSpecialLbLabel(activeCharacter.key) }}
-            </div>
-            <div class="sdmg-blocks">
-              <div class="sdmg-block">
-                <span class="sdmg-label">{{ currentLang === 'ru' ? 'Рахунок' : 'Score' }}</span>
-                <span class="sdmg-value">{{ formatSpecialDmg(activeCharacter.specialDmg) }}</span>
-              </div>
-              <div class="sdmg-divider"></div>
-              <div class="sdmg-block">
-                <span class="sdmg-label">{{ currentLang === 'ru' ? 'Ранг' : 'Rank' }}</span>
-                <span class="sdmg-rank">
-                  {{ activeCharacter.specialDmgRank }}/{{ activeCharacter.total }}
-                  <span class="sdmg-pct">({{ t.top }} {{ ((activeCharacter.specialDmgRank / activeCharacter.total) * 100).toFixed(2) }}%)</span>
-                </span>
-              </div>
-              <div class="sdmg-divider"></div>
-              <!-- Hydro bonus for Furina -->
-              <div class="sdmg-block" v-if="activeCharacter.key === 'Furina'">
-                <span class="sdmg-label">{{ currentLang === 'ru' ? 'Гідро бонус' : 'Hydro Bonus' }}</span>
-                <span class="sdmg-stat" style="color:#5bc4f0">{{ ((activeCharacter.hydroDmgBonus || 0) * 100).toFixed(1) }}%</span>
-              </div>
-              <!-- Geo bonus for Navia -->
-              <div class="sdmg-block" v-if="activeCharacter.key === 'Navia'">
-                <span class="sdmg-label">{{ currentLang === 'ru' ? 'Гео бонус' : 'Geo Bonus' }}</span>
-                <span class="sdmg-stat" style="color:#c8b460">{{ ((activeCharacter.geoDmgBonus || 0) * 100).toFixed(1) }}%</span>
-              </div>
-              <!-- Cryo bonus for Skirk -->
-              <div class="sdmg-block" v-if="activeCharacter.key === 'Skirk'">
-                <span class="sdmg-label">{{ currentLang === 'ru' ? 'Крио бонус' : 'Cryo Bonus' }}</span>
-                <span class="sdmg-stat" style="color:#a0d8f0">{{ ((activeCharacter.cryoDmgBonus || 0) * 100).toFixed(1) }}%</span>
-              </div>
-              <div class="sdmg-divider"></div>
-              <div class="sdmg-block">
-                <span class="sdmg-label">{{ currentLang === 'ru' ? 'Ефект. E' : 'Eff. E Lv.' }}</span>
-                <span class="sdmg-stat">{{ getEffectiveSkillLevel(activeCharacter) }}</span>
-              </div>
             </div>
           </div>
 
@@ -224,7 +179,7 @@
                       <div class="art-header-info">
                         <span class="art-slot">{{ getEquipTypeName(art.equipType) }}</span>
                         <span class="art-set">{{ art.setName?.[currentLang] || art.setName?.en }}</span>
-                        <span class="art-lv">+{{ art.level - 1 }}</span>
+                        <span class="art-lv">+{{ Number(art.level) - 1 }}</span>
                       </div>
                       <div class="cv-badge" :class="getCVClass(art)">
                         {{ getArtifactCV(art).toFixed(1) }} {{ currentLang === 'ru' ? 'КМ' : 'CV' }}
@@ -290,41 +245,9 @@ function getBestRankType(char: any): string {
   const specialRatio = char.specialDmgRank / char.total;
   return specialRatio <= defaultRatio ? 'special' : 'default';
 }
-// ══ Спеціальні топи: конфіг синхронізований з LeaderboardDetail ══
-const SPECIAL_CHARS = new Set(['Furina', 'Navia', 'Skirk'])
-
-const CHAR_SPECIAL_CONFIG: Record<string, { urlSlug: string; labelRu: string; labelEn: string }> = {
-  'Furina': { urlSlug: 'skill',           labelRu: 'Топ по E DMG',   labelEn: 'E DMG Leaderboard'       },
-  'Navia':  { urlSlug: 'rotation_1',      labelRu: 'Топ ротации',    labelEn: 'Rotation Leaderboard'    },
-  'Skirk':  { urlSlug: 'rotation_skirk',  labelRu: 'Топ ротации',    labelEn: 'Rotation Leaderboard'    },
-  // ← Нового персонажа додавати сюди
-}
-
-function getSpecialLbLabel(key: string): string {
-  const cfg = CHAR_SPECIAL_CONFIG[key]
-  if (!cfg) return 'Leaderboard'
-  return currentLang.value === 'ru' ? cfg.labelRu : cfg.labelEn
-}
-
 function openSpecialLeaderboard() {
-  const key = activeCharacter.value?.key
-  const cfg = CHAR_SPECIAL_CONFIG[key]
-  if (key && cfg) {
-    console.log(`[ПРОФІЛЬ] Відкриваємо топ ${cfg.labelEn} для: ${key}`)
-    router.push(`/leaderboard/${encodeURIComponent(key)}/${cfg.urlSlug}`)
-  }
-}
-
-function getEffectiveSkillLevel(char: any): number {
-  const base = char.skillLevelE || 1
-  return char.constellations >= 3 ? Math.min(base + 3, 13) : base
-}
-
-function formatSpecialDmg(val: number | null | undefined): string {
-  if (!val) return '—'
-  if (val >= 1_000_000) return (val / 1_000_000).toFixed(2) + 'M'
-  if (val >= 1_000)     return (val / 1_000).toFixed(1) + 'K'
-  return String(val)
+  if (activeCharacter.value.key === 'Furina') router.push('/leaderboard/Furina?view=skill_dmg');
+  if (activeCharacter.value.key === 'Navia') router.push('/leaderboard/Navia?view=rotation_dmg');
 }
 
 // ── Stat/equip helpers ─────────────────────────────
@@ -560,30 +483,4 @@ onUnmounted(()=>{if(timerInterval)clearInterval(timerInterval);});
 .cv-gray{color:#6a6a6a;border-color:#6a6a6a}.cv-blue{color:#4a9fd4;border-color:#4a9fd4}.cv-purple{color:#a070c8;border-color:#a070c8}.cv-orange{color:#d47830;border-color:#d47830}.cv-gold{color:var(--ht-gold-light);border-color:var(--ht-gold-light)}.cv-cyan{color:#40d8f0;border-color:#40d8f0}.cv-red{color:var(--ht-accent-light);border-color:var(--ht-accent-light)}
 .expand-enter-active,.expand-leave-active{transition:all 0.32s ease;max-height:2000px;opacity:1;}
 .expand-enter-from,.expand-leave-to{max-height:0;opacity:0;overflow:hidden;}
-
-/* ══ Special DMG Panel (Furina / Navia / Skirk / ...) ══ */
-.special-dmg-panel {
-  margin-bottom: 20px;
-  background: linear-gradient(135deg, rgba(189,168,210,0.07), rgba(176,50,24,0.04));
-  border: 1px solid rgba(189,168,210,0.25);
-  border-radius: 8px;
-  overflow: hidden;
-}
-.sdmg-title {
-  font-family: var(--font-heading);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ht-ghost);
-  padding: 8px 16px 6px;
-  border-bottom: 1px solid rgba(189,168,210,0.15);
-}
-.sdmg-blocks { display: flex; align-items: center; flex-wrap: wrap; }
-.sdmg-block { display: flex; flex-direction: column; align-items: center; padding: 12px 20px; flex: 1; min-width: 80px; }
-.sdmg-divider { width: 1px; height: 40px; background: rgba(189,168,210,0.18); flex-shrink: 0; }
-.sdmg-label { font-family: var(--font-heading); font-size: 0.66rem; color: var(--ht-text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px; }
-.sdmg-value { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 900; color: var(--ht-ghost); }
-.sdmg-rank { font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700; color: var(--ht-gold-light); }
-.sdmg-pct { font-size: 0.72rem; color: var(--ht-text-muted); margin-left: 4px; }
-.sdmg-stat { font-family: var(--font-mono); font-size: 1rem; font-weight: 700; color: var(--ht-text); }
 </style>
