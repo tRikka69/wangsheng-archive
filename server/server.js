@@ -1,8 +1,40 @@
 const express    = require('express');
 const cors       = require('cors');
 const { EnkaClient } = require('enka-network-api');
-const sqlite3    = require('sqlite3');
-const { open }   = require('sqlite');
+const { createClient } = require('@libsql/client');
+
+const _turso = createClient({
+    url:       process.env.TURSO_DATABASE_URL || 'file:./database.sqlite',
+    authToken: process.env.TURSO_AUTH_TOKEN   || undefined,
+});
+
+const db = {
+    get: async (sql, args = []) => {
+        const r = await _turso.execute({ sql, args });
+        return r.rows[0] ? convertRow(r.rows[0]) : null;
+    },
+    all: async (sql, args = []) => {
+        const r = await _turso.execute({ sql, args });
+        return r.rows.map(convertRow);
+    },
+    run: async (sql, args = []) => {
+        await _turso.execute({ sql, args });
+    },
+    exec: async (sql) => {
+        for (const s of sql.split(';').map(x => x.trim()).filter(Boolean)) {
+            await _turso.execute(s);
+        }
+    }
+};
+
+// Конвертує BigInt поля в звичайні числа
+function convertRow(row) {
+    const out = {};
+    for (const [k, v] of Object.entries(row)) {
+        out[k] = typeof v === 'bigint' ? Number(v) : v;
+    }
+    return out;
+}
 
 // ══ genshin-db — використовується для скейлінгів талантів ══
 let genshindb;
@@ -31,13 +63,8 @@ app.use(express.json());
 // ══════════════════════════════════════════════════════════
 //  ІНІЦІАЛІЗАЦІЯ БД
 // ══════════════════════════════════════════════════════════
-let db;
 (async () => {
     console.log('[ЯДРО] Ініціалізація бази даних...');
-    const DB_PATH = process.env.NODE_ENV === 'production'
-    ? '/app/data/database.sqlite'
-    : './database.sqlite';
-db = await open({ filename: DB_PATH, driver: sqlite3.Database });
 
     await db.exec(`CREATE TABLE IF NOT EXISTS builds (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
