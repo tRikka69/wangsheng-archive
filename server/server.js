@@ -27,15 +27,17 @@ const db = {
     }
 };
 
-// Конвертує BigInt поля в звичайні числа
 function convertRow(row) {
     const out = {};
     for (const [k, v] of Object.entries(row)) {
-        out[k] = typeof v === 'bigint' ? Number(v) : v;
+        if (k === 'uid') {
+            out[k] = String(v).replace(/\.0$/, ''); // Жорстко відсікаємо плаваючу крапку
+        } else {
+            out[k] = typeof v === 'bigint' ? Number(v) : v;
+        }
     }
     return out;
 }
-
 // genshin-db відключений в production через обмеження RAM (165MB)
 // Використовуємо захардкоджені fallback значення
 let genshindb = null;
@@ -438,7 +440,7 @@ app.get('/api/user/:uid', async (req, res) => {
                         hydro_dmg_bonus=excluded.hydro_dmg_bonus, geo_dmg_bonus=excluded.geo_dmg_bonus, cryo_dmg_bonus=excluded.cryo_dmg_bonus,
                         updated_at=excluded.updated_at`,
                     [
-                        user.uid, user.nickname, user.signature || '', playerAvatar, user.level,
+                        String(user.uid), user.nickname, user.signature || '', playerAvatar, user.level,
                         worldLevel, achievementNum, towerFloor, towerLevel,
                         charKey, charNameRu, charNameEn, charIcon, char.level,
                         friendship, constellations, JSON.stringify(constellationsData),
