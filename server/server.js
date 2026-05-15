@@ -36,16 +36,17 @@ function convertRow(row) {
     return out;
 }
 
-// ══ genshin-db — використовується для скейлінгів талантів ══
-let genshindb;
-try {
-    genshindb = require('genshin-db');
-    console.log('[GENSHIN-DB] ✓ Підключено');
-} catch (e) {
-    console.warn('[GENSHIN-DB] ✗ Не знайдено. npm install genshin-db');
-    genshindb = null;
+// genshin-db відключений в production через обмеження RAM (165MB)
+// Використовуємо захардкоджені fallback значення
+let genshindb = null;
+if (process.env.NODE_ENV !== 'production') {
+    try {
+        genshindb = require('genshin-db');
+        console.log('[GENSHIN-DB] ✓ Підключено (dev mode)');
+    } catch (e) {
+        console.warn('[GENSHIN-DB] ✗ Не знайдено');
+    }
 }
-
 const app  = express();
 const port = 3000;
 const enka = new EnkaClient({ cacheDirectory: './cache' });

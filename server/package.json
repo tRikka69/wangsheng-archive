@@ -15,6 +15,5 @@
     "cors": "^2.8.6",
     "enka-network-api": "^5.0.15",
     "express": "^5.2.1",
-    "genshin-db": "^5.2.10"
   }
 }
