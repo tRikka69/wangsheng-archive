@@ -1,0 +1,21 @@
+{
+  "name": "wangsheng_archive",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "enka-network-api": "^5.0.15",
+    "express": "^5.2.1",
+    "genshin-db": "^5.2.10",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^6.0.1"
+  }
+}
