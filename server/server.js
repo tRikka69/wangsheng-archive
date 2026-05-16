@@ -301,21 +301,87 @@ function calculateNaviaRotationDmg(build) {
 
 // ══════════════════════════════════════════════════════════
 //  ELITE STATS
+//
+//  Розраховує середні стати гравців які знаходяться в топ 1%
+//  (діапазон 0.5–1.5%) по ГОЛОВНОМУ метрику персонажа:
+//    - Furina:          по E Skill DMG
+//    - Navia:           по Rotation DMG
+//    - Skirk:           по Skirk Rotation DMG
+//    - Kaedehara Kazuha: по Elemental Mastery
+//    - Решта:           по HP (HP-скейл) / DEF (DEF-скейл) / ATK (решта)
+//
+//  Алгоритм:
+//  1. Отримуємо всі білди персонажа
+//  2. Сортуємо по головному метрику (DESC)
+//  3. Беремо 0.5–1.5% — приблизно "топ 1%"
+//  4. Усереднюємо стати цих гравців
 // ══════════════════════════════════════════════════════════
-async function getEliteStats(charKey, topLimit) {
-    return await db.get(`
-        SELECT
-            (SELECT AVG(hp)          FROM (SELECT hp          FROM builds WHERE char_key=? ORDER BY hp          DESC LIMIT ?)) as hp,
-            (SELECT AVG(attack)      FROM (SELECT attack      FROM builds WHERE char_key=? ORDER BY attack      DESC LIMIT ?)) as attack,
-            (SELECT AVG(defense)     FROM (SELECT defense     FROM builds WHERE char_key=? ORDER BY defense     DESC LIMIT ?)) as defense,
-            (SELECT AVG(mastery)     FROM (SELECT mastery     FROM builds WHERE char_key=? ORDER BY mastery     DESC LIMIT ?)) as mastery,
-            (SELECT AVG(crit_rate)   FROM (SELECT crit_rate   FROM builds WHERE char_key=? ORDER BY crit_rate   DESC LIMIT ?)) as critRate,
-            (SELECT AVG(crit_damage) FROM (SELECT crit_damage FROM builds WHERE char_key=? ORDER BY crit_damage DESC LIMIT ?)) as critDamage,
-            (SELECT AVG(er)          FROM (SELECT er          FROM builds WHERE char_key=? ORDER BY er          DESC LIMIT ?)) as er
-    `, [
-        charKey,topLimit, charKey,topLimit, charKey,topLimit, charKey,topLimit,
-        charKey,topLimit, charKey,topLimit, charKey,topLimit
-    ]);
+
+// Конфіг головного метрика для кожного персонажа
+const ELITE_METRIC_FN = {
+    'Furina':           (b) => calculateFurinaSkillDmg(b),
+    'Navia':            (b) => calculateNaviaRotationDmg(b),
+    'Skirk':            (b) => calculateSkirkRotationDmg(b),
+    'Kaedehara Kazuha': (b) => getKazuhaMastery(b),
+};
+
+async function getEliteStats(charKey, totalCount) {
+    try {
+        // Отримуємо всі білди для розрахунку метрика
+        const allBuilds = await db.all(
+            `SELECT id, hp, attack, defense, mastery, crit_rate, crit_damage, er,
+                    constellations, skill_level_e, skill_level_a, skill_level_q,
+                    hydro_dmg_bonus, geo_dmg_bonus, cryo_dmg_bonus, artifacts
+             FROM builds WHERE char_key = ?`,
+            [charKey]
+        );
+
+        if (!allBuilds.length) return null;
+
+        // Визначаємо метрик для сортування
+        const metricFn = ELITE_METRIC_FN[charKey];
+
+        let sorted;
+        if (metricFn) {
+            // Персонажі зі спеціальним топом — сортуємо по їх метрику
+            sorted = allBuilds
+                .map(b => ({ ...b, _metric: metricFn(b) }))
+                .sort((a, b) => b._metric - a._metric);
+        } else {
+            // Решта — сортуємо по HP або ATK або DEF
+            const isHp  = ['Furina','Yelan','Neuvillette','Nilou','Hu Tao','Zhongli'].includes(charKey);
+            const isDef = ['Albedo','Arataki Itto','Chiori','Noelle'].includes(charKey);
+            const stat  = isHp ? 'hp' : (isDef ? 'defense' : 'attack');
+            sorted = [...allBuilds].sort((a, b) => (Number(b[stat])||0) - (Number(a[stat])||0));
+        }
+
+        // Беремо проміжок 0.5%–1.5% (центр топ 1%)
+        const total = sorted.length;
+        const lo = Math.max(0,                    Math.floor(total * 0.005));
+        const hi = Math.min(total,                Math.ceil(total  * 0.015));
+        const slice = sorted.slice(lo, Math.max(hi, lo + 1)); // мінімум 1 елемент
+
+        // Усереднюємо стати
+        const avg = (key) => {
+            const vals = slice.map(b => Number(b[key]) || 0).filter(v => v > 0);
+            return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+        };
+
+        console.log(`[ELITE] ${charKey}: топ 1% = рядки ${lo}–${hi} із ${total} (${slice.length} записів)`);
+
+        return {
+            hp:         avg('hp'),
+            attack:     avg('attack'),
+            defense:    avg('defense'),
+            mastery:    avg('mastery'),
+            critRate:   avg('crit_rate'),
+            critDamage: avg('crit_damage'),
+            er:         avg('er'),
+        };
+    } catch (e) {
+        console.error(`[ELITE] Помилка для ${charKey}:`, e.message);
+        return null;
+    }
 }
 
 // ══════════════════════════════════════════════════════════
@@ -473,8 +539,7 @@ app.get('/api/user/:uid', async (req, res) => {
             const rankRes = await db.get(`SELECT COUNT(*) as count FROM builds WHERE char_key = ? AND ${mainStat} >= ?`, [c.char_key, c[mainStat]]);
             
             const total = totalRes.count;
-            const topLimit = Math.max(1, Math.floor(total * 0.01));
-            const eliteStats = await getEliteStats(c.char_key, topLimit);
+            const eliteStats = await getEliteStats(c.char_key, total);
 
             let parsedArtifacts = [], parsedConstellations = [];
             try { parsedArtifacts = JSON.parse(c.artifacts || '[]'); } catch {}
