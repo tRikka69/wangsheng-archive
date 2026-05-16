@@ -222,4 +222,31 @@ input:focus {
   margin: 16px 0 0;
   font-family: var(--font-body);
 }
+
+/* ══ МОБІЛЬНА АДАПТАЦІЯ: ГОЛОВНА СТОРІНКА ══ */
+@media (max-width: 768px) {
+  .capture-screen { min-height: calc(100vh - 100px); padding: 20px; }
+  .emblem-area { width: 100%; height: auto; padding: 40px 0; }
+  .emblem-ring { display: none; } /* Вимикаємо важку анімацію на телефонах */
+  .central-content { width: 100%; max-width: 400px; }
+  .main-title { font-size: 1.8rem; }
+  .subtitle { font-size: 0.75rem; margin-bottom: 30px; letter-spacing: 0.08em; }
+  .input-group { gap: 10px; }
+  input { font-size: 1rem; padding: 12px 16px 12px 36px; }
+  .input-icon { left: 12px; }
+  .analyze-btn { padding: 12px 20px; font-size: 0.9rem; }
+}
+
+@media(max-width:600px){
+  .emblem-area{width:280px;height:280px;}
+  .central-content{width:260px;}
+  .main-title{font-size:1.4rem;}
+  .subtitle{font-size:.72rem;letter-spacing:.06em;}
+  .uid-input{font-size:.95rem;padding:10px 14px;}
+  .analyze-btn{padding:10px 18px;font-size:.85rem;}
+}
+@media(max-width:380px){
+  .emblem-area{width:220px;height:220px;}
+  .central-content{width:210px;}
+}
 </style>

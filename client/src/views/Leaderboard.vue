@@ -194,4 +194,29 @@ td { padding: 10px 20px; text-align: center; vertical-align: middle; }
   .table-wrapper { overflow-x: auto; }
   .data-table { min-width: 700px; }
 }
+
+/* ══ МОБІЛЬНА АДАПТАЦІЯ: СПИСОК ПЕРСОНАЖІВ ══ */
+@media (max-width: 768px) {
+  .lb-header { margin-bottom: 20px; }
+  .lb-deco { display: none; } /* Ховаємо декорації */
+  .lb-title { font-size: 1.5rem; }
+  .table-wrapper { border-radius: 6px; }
+  th, td { padding: 10px 8px; font-size: 0.75rem; }
+  .td-date, .th-date, th:last-child { display: none; } /* Скидаємо колонку дати */
+  .char-img-ring { width: 40px; height: 40px; }
+  .td-name { font-size: 0.85rem; }
+  .td-builds { width: 80px; }
+  .bc-num { font-size: 0.95rem; }
+  .bc-lbl { font-size: 0.55rem; }
+  .td-rank { width: 50px; }
+  .medal-wrap svg { width: 22px; height: 26px; }
+}
+
+@media(max-width:768px){
+  .table-wrapper{overflow-x:auto;}
+  .data-table{min-width:600px;}
+}
+@media(max-width:480px){
+  h1, .page-title{font-size:1.2rem !important;}
+}
 </style>

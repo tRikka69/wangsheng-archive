@@ -135,7 +135,7 @@
                   <div class="stat-row"><span class="sname">{{ t.stats.ER }}</span><span class="sval">{{ activeCharacter.stats.er.toFixed(1) }}%</span></div>
                 </div>
                 <div class="total-cv" :class="getTotalCVClass(activeCharacter)">
-                  <span class="cv-label">{{ currentLang === 'ru' ? 'Загальна КМ' : 'Total CV' }}</span>
+                  <span class="cv-label">{{ currentLang === 'ru' ? 'Общая КМ' : 'Total CV' }}</span>
                   <span class="cv-val">{{ getTotalCV(activeCharacter).toFixed(1) }}</span>
                 </div>
               </section>
@@ -224,7 +224,7 @@ const activeCharacter = ref<any>(null);
 
 const translations: any = {
   ru: {
-    back: '← Вернуться', refresh: 'Обновить данные', loading: 'Загрузка...', cooldown: 'Обновление через',
+    back: '← Назад', refresh: 'Обновить данные', loading: 'Загрузка...', cooldown: 'Обновление через',
     top: 'Топ', weapon: 'ОРУЖИЕ', artifacts: 'АРТЕФАКТЫ', constellations: 'СОЗВЕЗДИЯ',
     close: 'Закрыть', hiddenStats: 'Данные скрыты', achievements: 'Достижений', abyss: 'Бездна',
     stats: { header: 'ХАРАКТЕРИСТИКИ', MAX_HP: 'Макс. HP', ATK: 'Сила Атаки', DEF: 'Защита', EM: 'Мастерство', CR: 'Крит. Шанс', CD: 'Крит. Урон', ER: 'Восст. Энергии' }
@@ -483,4 +483,107 @@ onUnmounted(()=>{if(timerInterval)clearInterval(timerInterval);});
 .cv-gray{color:#6a6a6a;border-color:#6a6a6a}.cv-blue{color:#4a9fd4;border-color:#4a9fd4}.cv-purple{color:#a070c8;border-color:#a070c8}.cv-orange{color:#d47830;border-color:#d47830}.cv-gold{color:var(--ht-gold-light);border-color:var(--ht-gold-light)}.cv-cyan{color:#40d8f0;border-color:#40d8f0}.cv-red{color:var(--ht-accent-light);border-color:var(--ht-accent-light)}
 .expand-enter-active,.expand-leave-active{transition:all 0.32s ease;max-height:2000px;opacity:1;}
 .expand-enter-from,.expand-leave-to{max-height:0;opacity:0;overflow:hidden;}
+
+/* ══ МОБІЛЬНА АДАПТАЦІЯ: ПРОФІЛЬ ══ */
+@media (max-width: 768px) {
+  .top-controls { flex-direction: column; gap: 12px; align-items: stretch; }
+  .refresh-btn { width: 100%; justify-content: center; }
+  .player-header { flex-direction: column; text-align: center; gap: 16px; padding-bottom: 16px; }
+  .player-name-row { justify-content: center; flex-wrap: wrap; }
+  .player-stats-row { justify-content: center; flex-wrap: wrap; }
+  .character-list { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .char-card { padding: 8px; flex-direction: column; text-align: center; }
+  .char-meta { align-items: center; }
+  .char-name { white-space: normal; }
+  .build-columns { grid-template-columns: 1fr; gap: 20px; }
+  .panel-header { flex-direction: column; gap: 16px; text-align: center; }
+  .panel-char-title { flex-direction: column; }
+  .panel-header-right { flex-direction: column; width: 100%; }
+  .leaderboard-link-btn, .close-btn { width: 100%; justify-content: center; }
+  .char-art-big { height: 200px; }
+  .col-right { max-height: none; overflow-y: visible; }
+}
+
+/* ═══════ MOBILE ADAPTIVE ═══════ */
+@media(max-width:768px){
+  /* Top controls - 2 buttons full width */
+  .top-controls{flex-direction:row;gap:8px;}
+  .back-btn, .refresh-btn{flex:1;text-align:center;justify-content:center;padding:10px 8px;font-size:.8rem;}
+
+  /* Character grid - 2 per row */
+  .character-list{grid-template-columns:repeat(2,1fr) !important;gap:10px;}
+  .char-card{padding:10px;gap:8px;}
+  .char-img{width:44px;height:44px;}
+
+  /* Build panel */
+  .build-panel-wrapper{padding:14px 12px;}
+  .panel-header{flex-wrap:wrap;gap:8px;}
+  .panel-header-right{width:100%;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;}
+  .leaderboard-link-btn{font-size:.75rem;padding:6px 10px;}
+  .close-btn{font-size:.75rem;padding:6px 12px;}
+
+  /* Special DMG panel */
+  .sdmg-blocks{flex-wrap:wrap;}
+  .sdmg-block{flex:1 1 40%;min-width:80px;padding:10px 12px;}
+  .sdmg-divider{display:none;}
+  .sdmg-value{font-size:1.1rem;}
+
+  /* Build columns - single column, ordered bottom-to-top */
+  .build-columns{
+    display:flex !important;
+    flex-direction:column;
+    gap:14px;
+  }
+  /* Order: name/photo -> stats -> weapon -> constellations -> radar -> artifacts */
+  .col-center{order:1;}
+  .col-left{order:2;}
+  .col-right{order:3;}
+
+  /* Char art */
+  .char-art-frame{min-height:200px;}
+  .char-art-big{height:200px;}
+
+  /* Stats */
+  .section-block{padding:12px;}
+  .stat-row{font-size:.85rem;}
+
+  /* Radar */
+  .radar-wrap{min-height:260px;}
+
+  /* Artifacts - horizontal scroll */
+  .artifacts-col{
+    display:flex;
+    flex-direction:row;
+    gap:10px;
+    overflow-x:auto;
+    padding-bottom:8px;
+    scrollbar-width:thin;
+    scrollbar-color: var(--ht-accent-dark) var(--ht-bg);
+    -webkit-overflow-scrolling:touch;
+  }
+  .art-card{
+    min-width:240px;
+    flex-shrink:0;
+  }
+
+  /* Constellation grid */
+  .constellation-grid{grid-template-columns:repeat(6,1fr);gap:6px;}
+  .con-node{font-size:.7rem;}
+
+  /* Player header */
+  .player-header{flex-direction:column;align-items:flex-start;gap:12px;}
+  .avatar-ring{width:72px;height:72px;}
+  .player-name{font-size:1.2rem;}
+
+  /* Special DMG panel rank box */
+  .rank-box{padding:3px 5px;}
+}
+
+@media(max-width:480px){
+  .character-list{grid-template-columns:repeat(2,1fr) !important;}
+  .char-name{font-size:.78rem;}
+  .build-panel-wrapper{padding:10px 8px;}
+  .panel-name{font-size:1.1rem;}
+  .art-card{min-width:210px;}
+}
 </style>

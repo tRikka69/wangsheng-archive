@@ -483,4 +483,43 @@ td { padding: 11px 16px; text-align: center; vertical-align: middle; }
   .table-wrapper { overflow-x: auto; }
   .data-table { min-width: 700px; }
 }
+
+/* ══ МОБІЛЬНА АДАПТАЦІЯ: АРХІВ ПРОФІЛІВ ══ */
+@media (max-width: 768px) {
+  .page-header { margin-bottom: 16px; }
+  .header-deco { display: none; }
+  .page-title { font-size: 1.5rem; }
+  .stats-bar { flex-direction: column; gap: 4px; }
+  .stat-sep { display: none; }
+  .table-wrapper { border-radius: 6px; margin-bottom: 14px; }
+  th, td { padding: 10px 6px; font-size: 0.75rem; }
+  
+  /* Жорстке приховування другорядних колонок */
+  .th-ar, .td-ar,
+  .th-updated, .td-updated,
+  .th-abyss, .td-abyss { display: none; }
+  
+  .th-achieve, .td-achieve { min-width: auto; }
+  .th-inner { font-size: 0.7rem; flex-direction: column; gap: 2px; }
+  .avatar-ring { width: 36px; height: 36px; }
+  .nick-name { font-size: 0.85rem; }
+  .nick-uid { font-size: 0.65rem; }
+  .achieve-num { font-size: 0.9rem; }
+  .td-rank { width: 50px; }
+  .medal-wrap svg { width: 22px; height: 26px; }
+  
+  /* Оптимізація кнопок пагінації */
+  .pagination { flex-wrap: wrap; gap: 4px; }
+  .page-btn { min-width: 32px; height: 32px; font-size: 0.8rem; padding: 0 6px; }
+}
+
+@media(max-width:768px){
+  .table-wrapper{overflow-x:auto;}
+  .data-table{min-width:580px;}
+  .controls-row{flex-direction:column;align-items:flex-start;}
+  .page-title{font-size:1.2rem;}
+}
+@media(max-width:480px){
+  .sort-btn{font-size:.75rem;padding:5px 10px;}
+}
 </style>

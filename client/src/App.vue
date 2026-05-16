@@ -104,4 +104,8 @@ h1 { font-family: var(--font-display); }
   background: linear-gradient(90deg, transparent, var(--ht-border-light), transparent);
   margin: 20px 0;
 }
+
+@media(max-width:1200px){.view-portal{padding:24px 28px;}}
+@media(max-width:768px){.view-portal{padding:16px 14px;}}
+@media(max-width:480px){.view-portal{padding:12px 10px;}}
 </style>

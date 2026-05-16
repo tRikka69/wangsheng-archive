@@ -484,4 +484,27 @@ td { padding: 10px 14px; text-align: center; vertical-align: middle; }
 .note-icon { margin-right: 8px; color: var(--ht-ghost); font-style: normal; }
 
 @media (max-width: 900px) { .table-wrapper { overflow-x: auto; } .data-table { min-width: 800px; } }
+
+/* ══ МОБІЛЬНА АДАПТАЦІЯ: ТОП (ЛІДЕРБОРД) ══ */
+@media (max-width: 768px) {
+  .detail-header { flex-direction: column; text-align: center; gap: 14px; }
+  .char-title-block { flex-direction: column; }
+  .view-switcher { margin: 0 auto 20px auto; flex-direction: column; width: 100%; }
+  .view-btn { justify-content: center; }
+  .table-wrapper { border-radius: 6px; }
+  th, td { padding: 10px 8px; font-size: 0.75rem; }
+  .player-cell { flex-direction: column; gap: 6px; align-items: center; text-align: center; }
+  /* Приховуємо зайві колонки, щоб таблиця влізла в екран телефону */
+  .th-uid, .td-uid, .th-level, .td-level, .th-date, .td-date { display: none; }
+  .dmg-display { flex-direction: column; align-items: center; gap: 0; }
+}
+
+@media(max-width:768px){
+  .table-wrapper{overflow-x:auto;}
+  .data-table{min-width:650px;}
+  .view-switcher{width:100%;}
+  .view-btn{flex:1;justify-content:center;font-size:.78rem;padding:8px 10px;}
+  .detail-header{flex-wrap:wrap;gap:10px;}
+  .detail-title{font-size:1.1rem;}
+}
 </style>

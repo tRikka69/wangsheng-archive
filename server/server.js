@@ -322,12 +322,13 @@ async function getEliteStats(charKey, topLimit) {
 //  GET /api/user/:uid
 // ══════════════════════════════════════════════════════════
 app.get('/api/user/:uid', async (req, res) => {
-    const uid          = req.params.uid;
+    const uid          = String(req.params.uid).trim();
     const forceRefresh = req.query.refresh === 'true';
     const now          = Date.now();
 
     console.log(`\n[API /user] UID: ${uid} | force: ${forceRefresh}`);
 
+    let canonicalUid = uid; // може бути оновлений після Enka запиту
     try {
         const existingRecord = await db.get(`SELECT updated_at FROM builds WHERE uid = ?`, [uid]);
         let needsFetchFromEnka = !existingRecord;
@@ -454,9 +455,12 @@ app.get('/api/user/:uid', async (req, res) => {
                 );
             }
             nextRefreshReadyAt = now + 120000;
+            // Після Enka-запиту використовуємо user.uid (канонічний) для SELECT
+            canonicalUid = String(user.uid).trim();
+            console.log(`[API /user] uid url="${uid}" enka="${canonicalUid}"`);
         }
 
-        const userBuilds = await db.all(`SELECT * FROM builds WHERE uid = ?`, [uid]);
+        const userBuilds = await db.all(`SELECT * FROM builds WHERE uid = ?`, [canonicalUid]);
         if (!userBuilds.length) throw new Error('Дані відсутні');
 
         const charactersWithEliteData = await Promise.all(userBuilds.map(async (c) => {
