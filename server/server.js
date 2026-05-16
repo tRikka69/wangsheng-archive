@@ -492,6 +492,12 @@ app.get('/api/user/:uid', async (req, res) => {
                 const all = await db.all(`SELECT attack, crit_rate, crit_damage, constellations, skill_level_a, skill_level_e, skill_level_q, geo_dmg_bonus, artifacts FROM builds WHERE char_key = 'Navia'`);
                 const withScores = all.map(b => ({ ...b, _s: calculateNaviaRotationDmg(b) }));
                 specialDmgRank = withScores.filter(b => b._s >= specialDmg).length;
+            } else if (c.char_key === 'Kazuha') {
+                specialDmg = getKazuhaMastery(c);
+                const all = await db.all(`SELECT mastery FROM builds WHERE char_key = 'Kazuha'`);
+                const withScores = all.map(b => ({ ...b, _s: getKazuhaMastery(b) }));
+                specialDmgRank = withScores.filter(b => b._s >= specialDmg).length;
+                console.log(`[KAZUHA] UID:${c.uid} EM:${specialDmg} Rank:${specialDmgRank}/${total}`);
             }
 
             return {
@@ -548,9 +554,10 @@ app.get('/api/leaderboard', async (req, res) => {
 //  DMG-сортування: calc all → sort in-memory → slice page
 // ══════════════════════════════════════════════════════════
 const SLUG_TO_SORT = {
-    'skill':        'skill_dmg',
-    'rotation_1':   'rotation_dmg',
+    'skill':          'skill_dmg',
+    'rotation_1':     'rotation_dmg',
     'rotation_skirk': 'skirk_rotation',
+    'em_top':         'em_sort',         // Kazuha EM ranking
     // ← додавати нових персонажів сюди
 };
 
@@ -739,10 +746,21 @@ function calculateSkirkRotationDmg(build) {
     return Math.round(total);
 }
 
+
+// ══════════════════════════════════════════════════════════
+//  KAZUHA — Elemental Mastery ranking
+//  Простий топ по значенню мастерства стихій.
+//  Чим більше EM — тим вищий ранг.
+// ══════════════════════════════════════════════════════════
+function getKazuhaMastery(build) {
+    return Math.round(Number(build.mastery) || 0);
+}
+
 const CHAR_SORT_FUNCTIONS = {
     'Furina': { 'skill_dmg':        calculateFurinaSkillDmg      },
     'Navia':  { 'rotation_dmg':     calculateNaviaRotationDmg    },
     'Skirk':  { 'skirk_rotation':   calculateSkirkRotationDmg    },
+    'Kazuha': { 'em_sort':           getKazuhaMastery             },
 };
 
 const LB_SELECT_FIELDS = `

@@ -214,6 +214,16 @@ const CHAR_RANKING_CONFIG: Record<string, CharConfig> = {
       en: 'Team: Furina C0 (FavSword R3, TOTM 4pc) + Escoffier C0 (FavLance R3, NO 4pc) + Mona C4 (TTDS R5, NO 4pc). Only Skirk damage counted. Fixed team buffs: TTDS +48% ATK, NO +20% ATK, Furina Fanfare +72% DMG, Mona Omen +52% DMG, Escoffier -15% Cryo RES. Scalings: hE×6, tE×2, Q×2, N5 combo×10, CA×6.'
     }
   },
+  'Kazuha': {
+    urlSlug: 'em_top', sortKey: 'em_sort',
+    label:   { ru: 'Мастерство стихий', en: 'Elemental Mastery' },
+    hint:    { ru: 'EM',                en: 'EM'                },
+    colLabel:{ ru: 'EM',                en: 'EM'                },
+    note: {
+      ru: 'Рейтинг по значению Мастерства стихий. Чем выше EM — тем выше ранг. EM увеличивает урон вихрей рассеивания и бонус урона союзников от A4.',
+      en: 'Ranking by Elemental Mastery value. Higher EM = higher rank. EM increases Swirl damage and the DMG bonus granted to allies via A4 passive.'
+    }
+  },
 }
 
 const charConfig    = computed<CharConfig | null>(() => CHAR_RANKING_CONFIG[charName] || null)

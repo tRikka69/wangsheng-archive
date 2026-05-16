@@ -59,16 +59,16 @@
               <span class="badge-fship">🤍 {{ char.friendship }}</span>
             </div>
             <div class="rank-box">
-              <div v-if="(char.key === 'Furina' || char.key === 'Navia') && char.specialDmgRank !== null">
+              <div v-if="(char.key === 'Furina' || char.key === 'Navia' || char.key === 'Skirk' || char.key === 'Kazuha') && char.specialDmgRank !== null">
                 <template v-if="getBestRankType(char) === 'special'">
                   <span class="top-text">{{ t.top }} {{ ((Number(char.specialDmgRank) / Number(char.total)) * 100).toFixed(2) }}%</span>
                   <span class="rank-text">{{ char.specialDmgRank }}/{{ char.total }}</span>
-                  <span class="rank-tag skill-tag">{{ char.key === 'Navia' ? 'ROTATION' : 'E DMG' }}</span>
+                  <span class="rank-tag skill-tag">{{ char.key === 'Kazuha' ? 'EM' : char.key === 'Furina' ? 'E DMG' : 'ROTATION' }}</span>
                 </template>
                 <template v-else>
                   <span class="top-text">{{ t.top }} {{ ((Number(char.rank) / Number(char.total)) * 100).toFixed(2) }}%</span>
                   <span class="rank-text">{{ char.rank }}/{{ char.total }}</span>
-                  <span class="rank-tag hp-tag">{{ char.key === 'Furina' ? 'HP' : 'ATK' }}</span>
+                  <span class="rank-tag hp-tag">{{ char.key === 'Furina' ? 'HP' : char.key === 'Kazuha' ? 'EM' : 'ATK' }}</span>
                 </template>
               </div>
               <div v-else>
@@ -96,13 +96,55 @@
 
             <div class="panel-header-right">
               <button
-                v-if="activeCharacter.key === 'Furina' || activeCharacter.key === 'Navia'"
+                v-if="['Furina','Navia','Skirk','Kazuha'].includes(activeCharacter.key)"
                 @click="openSpecialLeaderboard"
                 class="leaderboard-link-btn"
               >
-                ⚔️ {{ currentLang === 'ru' ? (activeCharacter.key === 'Navia' ? 'Топ ротации' : 'Топ по E DMG') : (activeCharacter.key === 'Navia' ? 'Rotation Leaderboard' : 'E DMG Leaderboard') }}
+                ⚔️ {{ getLbBtnLabel(activeCharacter.key) }}
               </button>
               <button @click="closeBuild" class="close-btn">✕ {{ t.close }}</button>
+            </div>
+          </div>
+
+          <!-- ══ SPECIAL DMG PANEL ══ -->
+          <div
+            v-if="activeCharacter.specialDmg !== null && activeCharacter.specialDmg !== undefined && ['Furina','Navia','Skirk','Kazuha'].includes(activeCharacter.key)"
+            class="special-dmg-panel"
+          >
+            <div class="sdmg-title">⚔️ {{ getLbBtnLabel(activeCharacter.key) }}</div>
+            <div class="sdmg-blocks">
+              <div class="sdmg-block">
+                <span class="sdmg-label">{{ activeCharacter.key === 'Kazuha' ? 'EM' : (currentLang === 'ru' ? 'Счёт' : 'Score') }}</span>
+                <span class="sdmg-value">{{ formatSpecialDmg(activeCharacter) }}</span>
+              </div>
+              <div class="sdmg-divider"></div>
+              <div class="sdmg-block">
+                <span class="sdmg-label">{{ currentLang === 'ru' ? 'Ранг' : 'Rank' }}</span>
+                <span class="sdmg-rank">
+                  {{ activeCharacter.specialDmgRank }}/{{ activeCharacter.total }}
+                  <span class="sdmg-pct">({{ t.top }} {{ ((Number(activeCharacter.specialDmgRank) / Number(activeCharacter.total)) * 100).toFixed(2) }}%)</span>
+                </span>
+              </div>
+              <template v-if="activeCharacter.key !== 'Kazuha'">
+                <div class="sdmg-divider"></div>
+                <div class="sdmg-block" v-if="activeCharacter.key === 'Furina'">
+                  <span class="sdmg-label">{{ currentLang === 'ru' ? 'Гидро бонус' : 'Hydro Bonus' }}</span>
+                  <span class="sdmg-stat" style="color:#5bc4f0">{{ ((activeCharacter.hydroDmgBonus || 0) * 100).toFixed(1) }}%</span>
+                </div>
+                <div class="sdmg-block" v-if="activeCharacter.key === 'Navia'">
+                  <span class="sdmg-label">{{ currentLang === 'ru' ? 'Гео бонус' : 'Geo Bonus' }}</span>
+                  <span class="sdmg-stat" style="color:#c8b460">{{ ((activeCharacter.geoDmgBonus || 0) * 100).toFixed(1) }}%</span>
+                </div>
+                <div class="sdmg-block" v-if="activeCharacter.key === 'Skirk'">
+                  <span class="sdmg-label">{{ currentLang === 'ru' ? 'Крио бонус' : 'Cryo Bonus' }}</span>
+                  <span class="sdmg-stat" style="color:#a0d8f0">{{ ((activeCharacter.cryoDmgBonus || 0) * 100).toFixed(1) }}%</span>
+                </div>
+                <div class="sdmg-divider"></div>
+                <div class="sdmg-block">
+                  <span class="sdmg-label">{{ currentLang === 'ru' ? 'Эфф. E' : 'Eff. E Lv.' }}</span>
+                  <span class="sdmg-stat">{{ getEffectiveSkillLevel(activeCharacter) }}</span>
+                </div>
+              </template>
             </div>
           </div>
 
@@ -245,9 +287,42 @@ function getBestRankType(char: any): string {
   const specialRatio = char.specialDmgRank / char.total;
   return specialRatio <= defaultRatio ? 'special' : 'default';
 }
+// ── Конфіг спеціальних лідербордів ──
+const CHAR_LB_CONFIG: Record<string, { slug: string; labelRu: string; labelEn: string }> = {
+  'Furina': { slug: 'skill',           labelRu: 'Топ по E DMG',    labelEn: 'E DMG Leaderboard'    },
+  'Navia':  { slug: 'rotation_1',      labelRu: 'Топ ротации',     labelEn: 'Rotation Leaderboard' },
+  'Skirk':  { slug: 'rotation_skirk',  labelRu: 'Топ ротации',     labelEn: 'Rotation Leaderboard' },
+  'Kazuha': { slug: 'em_top',          labelRu: 'Топ по EM',       labelEn: 'EM Leaderboard'       },
+}
+
+function getLbBtnLabel(key: string): string {
+  const cfg = CHAR_LB_CONFIG[key]
+  if (!cfg) return 'Leaderboard'
+  return currentLang.value === 'ru' ? cfg.labelRu : cfg.labelEn
+}
+
 function openSpecialLeaderboard() {
-  if (activeCharacter.value.key === 'Furina') router.push('/leaderboard/Furina?view=skill_dmg');
-  if (activeCharacter.value.key === 'Navia') router.push('/leaderboard/Navia?view=rotation_dmg');
+  const key = activeCharacter.value?.key
+  const cfg = CHAR_LB_CONFIG[key]
+  if (key && cfg) {
+    console.log(`[ПРОФІЛЬ] → /leaderboard/${key}/${cfg.slug}`)
+    router.push(`/leaderboard/${encodeURIComponent(key)}/${cfg.slug}`)
+  }
+}
+
+function getEffectiveSkillLevel(char: any): number {
+  const base = char.skillLevelE || 1
+  return char.constellations >= 3 ? Math.min(base + 3, 13) : base
+}
+
+function formatSpecialDmg(char: any): string {
+  const val = char.specialDmg
+  if (!val) return '—'
+  // Для Kazuha — EM як ціле число
+  if (char.key === 'Kazuha') return Math.round(val).toLocaleString()
+  if (val >= 1_000_000) return (val / 1_000_000).toFixed(2) + 'M'
+  if (val >= 1_000)     return (val / 1_000).toFixed(1) + 'K'
+  return String(Math.round(val))
 }
 
 // ── Stat/equip helpers ─────────────────────────────
@@ -586,4 +661,16 @@ onUnmounted(()=>{if(timerInterval)clearInterval(timerInterval);});
   .panel-name{font-size:1.1rem;}
   .art-card{min-width:210px;}
 }
+
+/* ══ Special DMG Panel ══ */
+.special-dmg-panel{margin-bottom:20px;background:linear-gradient(135deg,rgba(189,168,210,.07),rgba(176,50,24,.04));border:1px solid rgba(189,168,210,.25);border-radius:8px;overflow:hidden;}
+.sdmg-title{font-family:var(--font-heading);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ht-ghost);padding:8px 16px 6px;border-bottom:1px solid rgba(189,168,210,.15);}
+.sdmg-blocks{display:flex;align-items:center;flex-wrap:wrap;}
+.sdmg-block{display:flex;flex-direction:column;align-items:center;padding:12px 20px;flex:1;min-width:80px;}
+.sdmg-divider{width:1px;height:40px;background:rgba(189,168,210,.18);flex-shrink:0;}
+.sdmg-label{font-family:var(--font-heading);font-size:.66rem;color:var(--ht-text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
+.sdmg-value{font-family:var(--font-mono);font-size:1.4rem;font-weight:900;color:var(--ht-ghost);}
+.sdmg-rank{font-family:var(--font-mono);font-size:.95rem;font-weight:700;color:var(--ht-gold-light);}
+.sdmg-pct{font-size:.72rem;color:var(--ht-text-muted);margin-left:4px;}
+.sdmg-stat{font-family:var(--font-mono);font-size:1rem;font-weight:700;color:var(--ht-text);}
 </style>
