@@ -190,33 +190,48 @@ td { padding: 10px 20px; text-align: center; vertical-align: middle; }
 /* Date */
 .td-date { color: var(--ht-text-muted); font-family: var(--font-mono); font-size: 0.82rem; }
 
-@media (max-width: 900px) {
-  .table-wrapper { overflow-x: auto; }
-  .data-table { min-width: 700px; }
-}
-
 /* ══ МОБІЛЬНА АДАПТАЦІЯ: СПИСОК ПЕРСОНАЖІВ ══ */
 @media (max-width: 768px) {
-  .lb-header { margin-bottom: 20px; }
-  .lb-deco { display: none; } /* Ховаємо декорації */
-  .lb-title { font-size: 1.5rem; }
-  .table-wrapper { border-radius: 6px; }
-  th, td { padding: 10px 8px; font-size: 0.75rem; }
-  .td-date, .th-date, th:last-child { display: none; } /* Скидаємо колонку дати */
-  .char-img-ring { width: 40px; height: 40px; }
-  .td-name { font-size: 0.85rem; }
-  .td-builds { width: 80px; }
-  .bc-num { font-size: 0.95rem; }
-  .bc-lbl { font-size: 0.55rem; }
-  .td-rank { width: 50px; }
-  .medal-wrap svg { width: 22px; height: 26px; }
+  /* Таблиця без горизонтального скролу — все влізає */
+  .table-wrapper { overflow: visible; border-radius: 6px; }
+  .data-table { min-width: unset; width: 100%; }
+
+  /* Ховаємо дату — не потрібна на мобілі */
+  .td-date, .th-date { display: none; }
+
+  /* Компактні комірки */
+  th, td { padding: 9px 6px; font-size: 0.72rem; }
+
+  /* Ранг */
+  .td-rank { width: 36px; }
+  .rank-num { font-size: 0.78rem; }
+  .medal-wrap svg { width: 20px; height: 24px; }
+
+  /* Аватар */
+  .td-avatar { width: 44px; }
+  .char-img-ring { width: 36px; height: 36px; }
+
+  /* Ім'я — перенос якщо довге */
+  .td-name {
+    font-size: 0.82rem;
+    white-space: normal;
+    word-break: break-word;
+    max-width: 120px;
+  }
+
+  /* Кількість збірок — справа, компактно */
+  .td-builds { width: 56px; }
+  .bc-num { font-size: 0.9rem; }
+  .bc-lbl { font-size: 0.52rem; }
 }
 
-@media(max-width:768px){
-  .table-wrapper{overflow-x:auto;}
-  .data-table{min-width:600px;}
-}
 @media(max-width:480px){
+  th, td { padding: 8px 5px; font-size: 0.68rem; }
+  .td-name { font-size: 0.78rem; max-width: 95px; }
+  .td-rank { width: 30px; }
+  .td-avatar { width: 36px; }
+  .char-img-ring { width: 30px; height: 30px; }
+  .td-builds { width: 50px; }
   h1, .page-title{font-size:1.2rem !important;}
 }
 </style>

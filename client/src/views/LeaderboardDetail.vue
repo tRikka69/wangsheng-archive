@@ -485,26 +485,62 @@ td { padding: 10px 14px; text-align: center; vertical-align: middle; }
 
 @media (max-width: 900px) { .table-wrapper { overflow-x: auto; } .data-table { min-width: 800px; } }
 
-/* ══ МОБІЛЬНА АДАПТАЦІЯ: ТОП (ЛІДЕРБОРД) ══ */
+/* ══ МОБІЛЬНА АДАПТАЦІЯ: ТОП ПЕРСОНАЖА ══ */
 @media (max-width: 768px) {
-  .detail-header { flex-direction: column; text-align: center; gap: 14px; }
-  .char-title-block { flex-direction: column; }
-  .view-switcher { margin: 0 auto 20px auto; flex-direction: column; width: 100%; }
-  .view-btn { justify-content: center; }
-  .table-wrapper { border-radius: 6px; }
-  th, td { padding: 10px 8px; font-size: 0.75rem; }
-  .player-cell { flex-direction: column; gap: 6px; align-items: center; text-align: center; }
-  /* Приховуємо зайві колонки, щоб таблиця влізла в екран телефону */
-  .th-uid, .td-uid, .th-level, .td-level, .th-date, .td-date { display: none; }
-  .dmg-display { flex-direction: column; align-items: center; gap: 0; }
+  /* Header */
+  .detail-header { flex-direction: column; text-align: center; gap: 12px; align-items: center; }
+  .char-title-block { flex-direction: column; align-items: center; }
+  .detail-title { font-size: 1.1rem; }
+  .spacer { display: none; }
+
+  /* View switcher */
+  .view-switcher { width: 100%; margin-bottom: 14px; }
+  .view-btn { flex: 1; justify-content: center; font-size: .78rem; padding: 8px 8px; }
+
+  /* Таблиця без горизонтального скролу */
+  .table-wrapper { overflow: visible; border-radius: 6px; }
+  .data-table { min-width: unset; width: 100%; }
+
+  /* Ховаємо UID, AR level, дату */
+  .th-uid, .td-uid,
+  .th-level, .td-level,
+  .th-date, .td-date { display: none; }
+
+  /* Комірки */
+  th, td { padding: 9px 6px; font-size: 0.72rem; }
+
+  /* Ранг */
+  .td-rank { width: 36px; }
+  .rank-num { font-size: 0.78rem; }
+  .medal-wrap svg { width: 20px; height: 24px; }
+
+  /* Гравець — аватар і нік ВЕРТИКАЛЬНО, строго під заголовком "Игрок" */
+  .th-player { text-align: center; }
+  .player-cell {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+  }
+  .avatar-ring { width: 34px; height: 34px; }
+  .nickname { font-size: 0.75rem; }
+  .player-detail { font-size: 0.65rem; }
+
+  /* Созвездія */
+  .th-cons { width: 44px; }
+  .con-badge { font-size: 0.7rem; padding: 1px 5px; }
+
+  /* CV / DMG */
+  .th-cv, .th-skilldmg { width: 90px; }
+  .cv-display { font-size: 0.85rem; }
+  .crit-ratio { font-size: 0.65rem; }
+  .dmg-val { font-size: 0.95rem; }
+  .dmg-unit { font-size: 0.55rem; }
 }
 
-@media(max-width:768px){
-  .table-wrapper{overflow-x:auto;}
-  .data-table{min-width:650px;}
-  .view-switcher{width:100%;}
-  .view-btn{flex:1;justify-content:center;font-size:.78rem;padding:8px 10px;}
-  .detail-header{flex-wrap:wrap;gap:10px;}
-  .detail-title{font-size:1.1rem;}
+@media(max-width:480px){
+  th, td { padding: 7px 4px; font-size: 0.65rem; }
+  .nickname { font-size: 0.68rem; }
+  .avatar-ring { width: 28px; height: 28px; }
 }
 </style>
