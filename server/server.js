@@ -769,6 +769,7 @@ const CHAR_SORT_FUNCTIONS = {
 const LB_SELECT_FIELDS = `
     id as build_id, nickname, uid, player_level as level, player_avatar,
     char_icon, artifacts, crit_rate, crit_damage, updated_at as last_ms, hp, attack,
+    mastery,
     constellations, skill_level_a, skill_level_e, skill_level_q,
     hydro_dmg_bonus, geo_dmg_bonus, cryo_dmg_bonus
 `;
