@@ -522,4 +522,41 @@ td { padding: 11px 16px; text-align: center; vertical-align: middle; }
 @media(max-width:480px){
   .sort-btn{font-size:.75rem;padding:5px 10px;}
 }
+
+@media(max-width:768px){
+  /* Full width - no hidden columns, scroll if needed */
+  .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .data-table { min-width: 540px; width: 100%; }
+
+  /* Compact cells */
+  th, td { padding: 8px 6px; font-size: .7rem; }
+  .th-rank { width: 32px; }
+  .td-rank { width: 32px; }
+  .rank-num { font-size: .75rem; }
+  .medal-wrap svg { width: 18px; height: 22px; }
+
+  .th-avatar { width: 38px; }
+  .avatar-ring { width: 34px; height: 34px; }
+
+  .nick-name { font-size: .8rem; }
+  .nick-uid  { font-size: .62rem; }
+
+  .ar-val    { font-size: .82rem; }
+  .achieve-num { font-size: .85rem; }
+
+  .abyss-floor { font-size: .9rem; }
+  .abyss-label { font-size: .7rem; }
+
+  .updated-rel { font-size: .75rem; }
+  .updated-abs { font-size: .6rem; }
+
+  /* Sort controls */
+  .controls-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .sort-group { flex-wrap: wrap; gap: 6px; }
+  .sort-btn { font-size: .72rem; padding: 5px 9px; }
+  .page-title { font-size: 1.3rem; }
+}
+@media(max-width:400px){
+  .data-table { min-width: 480px; }
+}
 </style>

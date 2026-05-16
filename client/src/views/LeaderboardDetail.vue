@@ -214,7 +214,7 @@ const CHAR_RANKING_CONFIG: Record<string, CharConfig> = {
       en: 'Team: Furina C0 (FavSword R3, TOTM 4pc) + Escoffier C0 (FavLance R3, NO 4pc) + Mona C4 (TTDS R5, NO 4pc). Only Skirk damage counted. Fixed team buffs: TTDS +48% ATK, NO +20% ATK, Furina Fanfare +72% DMG, Mona Omen +52% DMG, Escoffier -15% Cryo RES. Scalings: hE×6, tE×2, Q×2, N5 combo×10, CA×6.'
     }
   },
-  'Kazuha': {
+  'Kaedehara Kazuha': {
     urlSlug: 'em_top', sortKey: 'em_sort',
     label:   { ru: 'Мастерство стихий', en: 'Elemental Mastery' },
     hint:    { ru: 'EM',                en: 'EM'                },
@@ -495,7 +495,7 @@ td { padding: 10px 14px; text-align: center; vertical-align: middle; }
 
 @media (max-width: 900px) { .table-wrapper { overflow-x: auto; } .data-table { min-width: 800px; } }
 
-/* ══ МОБІЛЬНА АДАПТАЦІЯ: ТОП ПЕРСОНАЖА ══ */
+
 @media (max-width: 768px) {
   /* Header */
   .detail-header { flex-direction: column; text-align: center; gap: 12px; align-items: center; }
@@ -552,5 +552,82 @@ td { padding: 10px 14px; text-align: center; vertical-align: middle; }
   th, td { padding: 7px 4px; font-size: 0.65rem; }
   .nickname { font-size: 0.68rem; }
   .avatar-ring { width: 28px; height: 28px; }
+}
+
+/* ══ MOBILE: LeaderboardDetail ══ */
+@media(max-width:768px){
+  /* Header */
+  .detail-header { flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+  .char-title-block { flex-direction: column; align-items: center; }
+  .detail-title { font-size: 1rem; }
+  .spacer { display: none; }
+
+  /* View switcher — VERTICAL */
+  .view-switcher {
+    flex-direction: column;
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 14px;
+  }
+  .view-btn {
+    width: 100%;
+    justify-content: center;
+    border-right: none !important;
+    border-bottom: 1px solid var(--ht-border);
+    font-size: .85rem;
+    padding: 11px 16px;
+  }
+  .view-btn:last-child { border-bottom: none; }
+
+  /* Table - scrollable */
+  .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 6px; }
+  .data-table { min-width: 420px; width: 100%; }
+
+  /* Hide UID, date; keep level */
+  .th-uid, .td-uid, .th-date, .td-date { display: none; }
+  .th-level, .td-level { display: table-cell; }
+
+  th, td { padding: 8px 5px; font-size: .7rem; }
+
+  /* Rank */
+  .td-rank { width: 34px; }
+  .rank-num { font-size: .75rem; }
+  .medal-wrap svg { width: 18px; height: 22px; }
+
+  /* Player — VERTICAL, narrow column */
+  .th-player { text-align: center; width: 80px; max-width: 80px; }
+  .player-cell {
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    text-align: center;
+    width: 80px;
+    max-width: 80px;
+  }
+  .avatar-ring { width: 30px; height: 30px; }
+  .nickname    { font-size: .68rem; white-space: normal; word-break: break-word; max-width: 76px; line-height: 1.2; }
+  .player-detail { font-size: .6rem; }
+
+  /* Level */
+  .th-level { width: 38px; }
+  .td-level { font-size: .72rem; }
+
+  /* Constellations */
+  .th-cons { width: 38px; }
+  .con-badge { font-size: .66rem; padding: 1px 4px; }
+
+  /* CV / DMG */
+  .th-cv, .th-skilldmg { width: 80px; }
+  .cv-cell { gap: 2px; }
+  .cv-display { font-size: .82rem; }
+  .crit-ratio { font-size: .62rem; }
+  .dmg-val { font-size: .9rem; }
+  .dmg-unit { font-size: .52rem; }
+}
+
+@media(max-width:480px){
+  .data-table { min-width: 380px; }
+  th, td { padding: 7px 4px; font-size: .65rem; }
+  .nickname { font-size: .63rem; max-width: 68px; }
 }
 </style>

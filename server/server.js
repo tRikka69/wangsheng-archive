@@ -492,9 +492,9 @@ app.get('/api/user/:uid', async (req, res) => {
                 const all = await db.all(`SELECT attack, crit_rate, crit_damage, constellations, skill_level_a, skill_level_e, skill_level_q, geo_dmg_bonus, artifacts FROM builds WHERE char_key = 'Navia'`);
                 const withScores = all.map(b => ({ ...b, _s: calculateNaviaRotationDmg(b) }));
                 specialDmgRank = withScores.filter(b => b._s >= specialDmg).length;
-            } else if (c.char_key === 'Kazuha') {
+            } else if (c.char_key === 'Kaedehara Kazuha') {
                 specialDmg = getKazuhaMastery(c);
-                const all = await db.all(`SELECT mastery FROM builds WHERE char_key = 'Kazuha'`);
+                const all = await db.all(`SELECT mastery FROM builds WHERE char_key = 'Kaedehara Kazuha'`);
                 const withScores = all.map(b => ({ ...b, _s: getKazuhaMastery(b) }));
                 specialDmgRank = withScores.filter(b => b._s >= specialDmg).length;
                 console.log(`[KAZUHA] UID:${c.uid} EM:${specialDmg} Rank:${specialDmgRank}/${total}`);
@@ -763,7 +763,7 @@ const CHAR_SORT_FUNCTIONS = {
     'Furina': { 'skill_dmg':        calculateFurinaSkillDmg      },
     'Navia':  { 'rotation_dmg':     calculateNaviaRotationDmg    },
     'Skirk':  { 'skirk_rotation':   calculateSkirkRotationDmg    },
-    'Kazuha': { 'em_sort':           getKazuhaMastery             },
+    'Kaedehara Kazuha': { 'em_sort':           getKazuhaMastery             },
 };
 
 const LB_SELECT_FIELDS = `

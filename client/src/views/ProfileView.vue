@@ -59,16 +59,16 @@
               <span class="badge-fship">🤍 {{ char.friendship }}</span>
             </div>
             <div class="rank-box">
-              <div v-if="(char.key === 'Furina' || char.key === 'Navia' || char.key === 'Skirk' || char.key === 'Kazuha') && char.specialDmgRank !== null">
+              <div v-if="(char.key === 'Furina' || char.key === 'Navia' || char.key === 'Skirk' || char.key === 'Kaedehara Kazuha') && char.specialDmgRank !== null">
                 <template v-if="getBestRankType(char) === 'special'">
+                  <span class="rank-tag skill-tag">{{ char.key === 'Kaedehara Kazuha' ? 'EM' : char.key === 'Furina' ? 'E DMG' : 'ROTATION' }}</span>
                   <span class="top-text">{{ t.top }} {{ ((Number(char.specialDmgRank) / Number(char.total)) * 100).toFixed(2) }}%</span>
                   <span class="rank-text">{{ char.specialDmgRank }}/{{ char.total }}</span>
-                  <span class="rank-tag skill-tag">{{ char.key === 'Kazuha' ? 'EM' : char.key === 'Furina' ? 'E DMG' : 'ROTATION' }}</span>
                 </template>
                 <template v-else>
                   <span class="top-text">{{ t.top }} {{ ((Number(char.rank) / Number(char.total)) * 100).toFixed(2) }}%</span>
                   <span class="rank-text">{{ char.rank }}/{{ char.total }}</span>
-                  <span class="rank-tag hp-tag">{{ char.key === 'Furina' ? 'HP' : char.key === 'Kazuha' ? 'EM' : 'ATK' }}</span>
+                  <span class="rank-tag hp-tag">{{ char.key === 'Furina' ? 'HP' : char.key === 'Kaedehara Kazuha' ? 'EM' : 'ATK' }}</span>
                 </template>
               </div>
               <div v-else>
@@ -96,7 +96,7 @@
 
             <div class="panel-header-right">
               <button
-                v-if="['Furina','Navia','Skirk','Kazuha'].includes(activeCharacter.key)"
+                v-if="['Furina','Navia','Skirk','Kaedehara Kazuha'].includes(activeCharacter.key)"
                 @click="openSpecialLeaderboard"
                 class="leaderboard-link-btn"
               >
@@ -108,13 +108,13 @@
 
           <!-- ══ SPECIAL DMG PANEL ══ -->
           <div
-            v-if="activeCharacter.specialDmg !== null && activeCharacter.specialDmg !== undefined && ['Furina','Navia','Skirk','Kazuha'].includes(activeCharacter.key)"
+            v-if="activeCharacter.specialDmg !== null && activeCharacter.specialDmg !== undefined && ['Furina','Navia','Skirk','Kaedehara Kazuha'].includes(activeCharacter.key)"
             class="special-dmg-panel"
           >
             <div class="sdmg-title">⚔️ {{ getLbBtnLabel(activeCharacter.key) }}</div>
             <div class="sdmg-blocks">
               <div class="sdmg-block">
-                <span class="sdmg-label">{{ activeCharacter.key === 'Kazuha' ? 'EM' : (currentLang === 'ru' ? 'Счёт' : 'Score') }}</span>
+                <span class="sdmg-label">{{ activeCharacter.key === 'Kaedehara Kazuha' ? 'EM' : (currentLang === 'ru' ? 'Счёт' : 'Score') }}</span>
                 <span class="sdmg-value">{{ formatSpecialDmg(activeCharacter) }}</span>
               </div>
               <div class="sdmg-divider"></div>
@@ -125,7 +125,7 @@
                   <span class="sdmg-pct">({{ t.top }} {{ ((Number(activeCharacter.specialDmgRank) / Number(activeCharacter.total)) * 100).toFixed(2) }}%)</span>
                 </span>
               </div>
-              <template v-if="activeCharacter.key !== 'Kazuha'">
+              <template v-if="activeCharacter.key !== 'Kaedehara Kazuha'">
                 <div class="sdmg-divider"></div>
                 <div class="sdmg-block" v-if="activeCharacter.key === 'Furina'">
                   <span class="sdmg-label">{{ currentLang === 'ru' ? 'Гидро бонус' : 'Hydro Bonus' }}</span>
@@ -292,7 +292,7 @@ const CHAR_LB_CONFIG: Record<string, { slug: string; labelRu: string; labelEn: s
   'Furina': { slug: 'skill',           labelRu: 'Топ по E DMG',    labelEn: 'E DMG Leaderboard'    },
   'Navia':  { slug: 'rotation_1',      labelRu: 'Топ ротации',     labelEn: 'Rotation Leaderboard' },
   'Skirk':  { slug: 'rotation_skirk',  labelRu: 'Топ ротации',     labelEn: 'Rotation Leaderboard' },
-  'Kazuha': { slug: 'em_top',          labelRu: 'Топ по EM',       labelEn: 'EM Leaderboard'       },
+  'Kaedehara Kazuha': { slug: 'em_top',          labelRu: 'Топ по EM',       labelEn: 'EM Leaderboard'       },
 }
 
 function getLbBtnLabel(key: string): string {
@@ -319,7 +319,7 @@ function formatSpecialDmg(char: any): string {
   const val = char.specialDmg
   if (!val) return '—'
   // Для Kazuha — EM як ціле число
-  if (char.key === 'Kazuha') return Math.round(val).toLocaleString()
+  if (char.key === 'Kaedehara Kazuha') return Math.round(val).toLocaleString()
   if (val >= 1_000_000) return (val / 1_000_000).toFixed(2) + 'M'
   if (val >= 1_000)     return (val / 1_000).toFixed(1) + 'K'
   return String(Math.round(val))
@@ -472,9 +472,9 @@ onUnmounted(()=>{if(timerInterval)clearInterval(timerInterval);});
 .char-badges{display:flex;gap:6px;}
 .badge-con{font-family:var(--font-mono);font-size:0.72rem;background:rgba(176,50,24,0.2);color:var(--ht-accent-light);border:1px solid var(--ht-accent-dark);padding:1px 6px;border-radius:3px;}
 .badge-fship{font-family:var(--font-mono);font-size:0.72rem;color:var(--ht-gold-light);background:rgba(196,152,30,0.1);border:1px solid rgba(196,152,30,0.3);padding:1px 6px;border-radius:3px;}
-.rank-box{display:flex;flex-direction:column;background:var(--ht-bg);border:1px solid var(--ht-border);border-radius:4px;padding:4px 6px;font-family:var(--font-mono);}
-.top-text{font-size:0.68rem;color:var(--ht-text-muted);}
-.rank-text{font-size:0.8rem;color:var(--ht-gold-light);font-weight:700;}
+.rank-box{display:flex;flex-direction:column;gap:1px;background:var(--ht-bg);border:1px solid var(--ht-border);border-radius:4px;padding:4px 6px;font-family:var(--font-mono);}
+.top-text{display:block;font-size:0.68rem;color:var(--ht-text-muted);}
+.rank-text{display:block;font-size:0.8rem;color:var(--ht-gold-light);font-weight:700;}
 .rank-tag{font-size:0.6rem;padding:1px 5px;border-radius:3px;align-self:flex-start;margin-top:2px;}
 .skill-tag{background:rgba(189,168,210,0.15);color:var(--ht-ghost);border:1px solid rgba(189,168,210,0.3);}
 .hp-tag{background:rgba(176,50,24,0.15);color:var(--ht-accent-light);border:1px solid var(--ht-accent-dark);}
@@ -579,7 +579,7 @@ onUnmounted(()=>{if(timerInterval)clearInterval(timerInterval);});
   .col-right { max-height: none; overflow-y: visible; }
 }
 
-/* ═══════ MOBILE ADAPTIVE ═══════ */
+
 @media(max-width:768px){
   /* Top controls - 2 buttons full width */
   .top-controls{flex-direction:row;gap:8px;}
@@ -673,4 +673,85 @@ onUnmounted(()=>{if(timerInterval)clearInterval(timerInterval);});
 .sdmg-rank{font-family:var(--font-mono);font-size:.95rem;font-weight:700;color:var(--ht-gold-light);}
 .sdmg-pct{font-size:.72rem;color:var(--ht-text-muted);margin-left:4px;}
 .sdmg-stat{font-family:var(--font-mono);font-size:1rem;font-weight:700;color:var(--ht-text);}
+
+/* ════════════════════════════════
+   MOBILE FIXES — ProfileView
+════════════════════════════════ */
+/* Full width - no shrinking */
+.profile-dashboard { width: 100%; max-width: 100%; padding: 0; }
+
+/* Top controls: 2 buttons full width side by side */
+@media(max-width:768px){
+  .top-controls { flex-direction: row; gap: 8px; }
+  .back-btn, .refresh-btn { flex: 1; text-align: center; font-size: .78rem; padding: 9px 6px; }
+
+  /* Char cards: 2 per row, full width */
+  .character-list {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px;
+  }
+  .char-card { padding: 9px 8px; gap: 7px; }
+  .char-img  { width: 42px; height: 42px; }
+  .char-name { font-size: .78rem; }
+
+  /* Rank box - vertical, two lines */
+  .rank-box { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; padding: 4px 6px; }
+  .top-text  { font-size: .65rem; color: var(--ht-text-muted); display: block; }
+  .rank-text { font-size: .78rem; font-weight: 700; color: var(--ht-gold-light); display: block; }
+  .rank-tag  { font-size: .58rem; padding: 1px 4px; }
+
+  /* Player header */
+  .player-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .avatar-ring   { width: 68px; height: 68px; }
+  .player-name   { font-size: 1.1rem; }
+
+  /* Build panel */
+  .build-panel-wrapper { padding: 12px 10px; }
+  .panel-header { flex-wrap: wrap; gap: 8px; }
+  .panel-header-right { width: 100%; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+  .leaderboard-link-btn { font-size: .72rem; padding: 6px 8px; }
+  .close-btn { font-size: .72rem; padding: 6px 10px; }
+
+  /* Special DMG panel */
+  .sdmg-blocks { flex-wrap: wrap; }
+  .sdmg-block  { flex: 1 1 42%; min-width: 80px; padding: 10px 10px; }
+  .sdmg-divider { display: none; }
+  .sdmg-value { font-size: 1.1rem; }
+
+  /* Build columns - single col, named order */
+  .build-columns {
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .col-center { order: 1; }
+  .col-left   { order: 2; }
+  .col-right  { order: 3; }
+
+  /* Char art */
+  .char-art-frame { min-height: 180px; }
+  .char-art-big   { height: 180px; }
+  .section-block  { padding: 11px; }
+
+  /* Artifacts horizontal scroll */
+  .artifacts-col {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .art-card { min-width: 220px; flex-shrink: 0; }
+
+  /* Constellation grid */
+  .constellation-grid { grid-template-columns: repeat(6, 1fr); gap: 5px; }
+}
+
+@media(max-width:480px){
+  .character-list { grid-template-columns: repeat(2, 1fr) !important; }
+  .char-name { font-size: .72rem; }
+  .art-card  { min-width: 195px; }
+}
 </style>

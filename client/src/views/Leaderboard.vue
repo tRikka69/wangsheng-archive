@@ -190,7 +190,7 @@ td { padding: 10px 20px; text-align: center; vertical-align: middle; }
 /* Date */
 .td-date { color: var(--ht-text-muted); font-family: var(--font-mono); font-size: 0.82rem; }
 
-/* ══ МОБІЛЬНА АДАПТАЦІЯ: СПИСОК ПЕРСОНАЖІВ ══ */
+
 @media (max-width: 768px) {
   /* Таблиця без горизонтального скролу — все влізає */
   .table-wrapper { overflow: visible; border-radius: 6px; }
@@ -233,5 +233,33 @@ td { padding: 10px 20px; text-align: center; vertical-align: middle; }
   .char-img-ring { width: 30px; height: 30px; }
   .td-builds { width: 50px; }
   h1, .page-title{font-size:1.2rem !important;}
+}
+
+/* ══ MOBILE: Leaderboard ══ */
+@media(max-width:900px){
+  /* Show date but scroll if needed */
+  .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .data-table { min-width: 500px; }
+}
+@media(max-width:768px){
+  .table-wrapper { overflow-x: auto; }
+  .data-table { min-width: 480px; }
+  th, td { padding: 9px 6px; font-size: .72rem; }
+  .td-date, .th-date { display: table-cell; } /* SHOW date on mobile */
+  .td-rank { width: 36px; }
+  .rank-num { font-size: .78rem; }
+  .medal-wrap svg { width: 20px; height: 24px; }
+  .td-avatar { width: 40px; }
+  .char-img-ring { width: 34px; height: 34px; }
+  .td-name { font-size: .82rem; white-space: normal; word-break: break-word; max-width: 110px; }
+  .td-builds { width: 56px; }
+  .bc-num { font-size: .88rem; }
+  .bc-lbl { font-size: .5rem; }
+  .td-date { font-size: .68rem; color: var(--ht-text-muted); }
+}
+@media(max-width:480px){
+  .data-table { min-width: 440px; }
+  th, td { padding: 7px 5px; font-size: .66rem; }
+  .td-name { max-width: 90px; font-size: .75rem; }
 }
 </style>

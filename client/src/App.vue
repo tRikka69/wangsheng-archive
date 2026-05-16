@@ -90,7 +90,7 @@ body {
   width: 100%;
   max-width: 1920px;
   margin: 0 auto;
-  padding: 32px 44px;
+  padding: 28px 40px;
   flex: 1;
 }
 
@@ -104,4 +104,8 @@ h1 { font-family: var(--font-display); }
   background: linear-gradient(90deg, transparent, var(--ht-border-light), transparent);
   margin: 20px 0;
 }
+
+@media(max-width:1200px){ .view-portal{ padding: 20px 24px; } }
+@media(max-width:768px){  .view-portal{ padding: 14px 12px; } }
+@media(max-width:480px){  .view-portal{ padding: 10px 8px;  } }
 </style>
