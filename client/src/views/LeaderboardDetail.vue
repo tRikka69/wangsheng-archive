@@ -107,7 +107,7 @@
                 <span class="dmg-val"
                   :class="{ 'dmg-gold': globalRank(index)===1, 'dmg-silver': globalRank(index)===2, 'dmg-bronze': globalRank(index)===3 }"
                 >{{ formatDmg(player.skill_dmg) }}</span>
-                <span class="dmg-unit">DMG</span>
+                <span class="dmg-unit">{{ charConfig?.sortKey === 'em_sort' ? 'EM' : 'DMG' }}</span>
               </div>
             </td>
             <td v-else>
@@ -350,6 +350,8 @@ function getEffectiveSkillLevel(p: any): number {
 }
 function formatDmg(val: number | null | undefined): string {
   if(!val||val===0)return '—';
+  // EM values (Kazuha) — plain integer, no K/M suffix
+  if(charConfig.value?.sortKey === 'em_sort') return Math.round(val).toLocaleString();
   if(val>=1000000)return(val/1000000).toFixed(2)+'M';
   if(val>=1000)return(val/1000).toFixed(1)+'K';
   return String(val);
