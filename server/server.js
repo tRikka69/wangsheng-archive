@@ -876,14 +876,14 @@ function formatRelativeTime(ms, lang) {
     if (days === 0) {
         if (hrs === 0) {
             if (min < 2) return isRu ? 'только что' : 'just now';
-            return isRu ? `${min} хв. тому` : `${min}m ago`;
+            return isRu ? `${min} мин. назад` : `${min}m ago`;
         }
-        return isRu ? `${hrs} год. тому` : `${hrs}h ago`;
+        return isRu ? `${hrs} ч. назад` : `${hrs}h ago`;
     }
     if (days === 1) return isRu ? 'вчера' : 'yesterday';
-    if (days < 7)  return isRu ? `${days} дн. тому` : `${days}d ago`;
-    if (days < 30) return isRu ? `${Math.floor(days/7)} тиж. тому` : `${Math.floor(days/7)}w ago`;
-    return isRu ? `${Math.floor(days/30)} міс. тому` : `${Math.floor(days/30)}mo ago`;
+    if (days < 7)  return isRu ? `${days} дн. назад` : `${days}d ago`;
+    if (days < 30) return isRu ? `${Math.floor(days/7)} нед. назад` : `${Math.floor(days/7)}w ago`;
+    return isRu ? `${Math.floor(days/30)} мес. назад` : `${Math.floor(days/30)}mo ago`;
 }
 
 app.listen(port, () => {

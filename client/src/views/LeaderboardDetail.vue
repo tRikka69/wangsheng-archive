@@ -190,7 +190,7 @@ const CHAR_RANKING_CONFIG: Record<string, CharConfig> = {
     hint:    { ru: 'Furina E',            en: 'Furina E'            },
     colLabel:{ ru: 'E DMG',               en: 'E DMG'               },
     note: {
-      ru: 'Розрахунковий урон: сума 1 удару Usher + Cheval + Crab. Враховано: HP, рівень E, гідро бонус, A4, Golden Troupe, крит. множник, C1 (+25%), C3.',
+      ru: 'Расчётный урон: сумма 1 удара Usher + Cheval + Crab. Учтено: HP, уровень E, бонус Гидро, пасс. А4, Golden Troupe, крит. множитель, C1 (+25%), C3.',
       en: 'Calculated damage: 1 hit from Usher + Cheval + Crab. Includes: HP, E talent level, Hydro DMG bonus, A4, Golden Troupe, crit multiplier, C1 (+25%), C3.'
     }
   },
@@ -200,7 +200,7 @@ const CHAR_RANKING_CONFIG: Record<string, CharConfig> = {
     hint:    { ru: 'Navia Combo',   en: 'Navia Combo'   },
     colLabel:{ ru: 'Ротация DMG',   en: 'Rotation DMG'  },
     note: {
-      ru: 'Урон в ротации: Q + 2×E (6 стаків) + 2×комбо NA. Учитано: ATK, Гео DMG, криты, Nighttime Whispers 4pc, Marechaussee Hunter, A1, C2/C4/C5/C6.',
+      ru: 'Урон в ротации: Q + 2×E (6 стаков) + 2×NA комбо. Учтено: ATK, Гео DMG, криты, Nighttime Whispers 4pc, Marechaussee Hunter, A1, C2/C4/C5/C6.',
       en: 'Rotation DMG: Q + 2×E (6 stacks) + 2×NA combo. Includes: ATK, Geo DMG, crits, Nighttime Whispers 4pc, Marechaussee Hunter, A1, C2/C4/C5/C6.'
     }
   },
@@ -210,7 +210,7 @@ const CHAR_RANKING_CONFIG: Record<string, CharConfig> = {
     hint:    { ru: 'Skirk Rotation',        en: 'Skirk Rotation'        },
     colLabel:{ ru: 'Ротация DMG',           en: 'Rotation DMG'          },
     note: {
-      ru: 'Команда: Furina C0 (FavSword R3, TOTM 4pc) + Escoffier C0 (FavLance R3, NO 4pc) + Mona C4 (TTDS R5, NO 4pc). Считается урон только Скирк. Баффы отряда фиксированные: TTDS +48% ATK, NO +20% ATK, Furina Fanfare +72% DMG, Mona Omen +52% DMG, Ескофье -15% Cryo RES. Скейлы: hE×6, tE×2, Q×2, N5-комбо×10, CA×6.',
+      ru: 'Команда: Furina C0 (FavSword R3, TOTM 4pc) + Escoffier C0 (FavLance R3, NO 4pc) + Mona C4 (TTDS R5, NO 4pc). Считается только урон Скирк. Баффы фиксированные: TTDS +48% ATK, NO +20% ATK, Furina Fanfare +72% DMG, Mona Omen +52% DMG, Escoffier -15% Cryo RES. Множители: hE×6, tE×2, Q×2, N5-комбо×10, CA×6.',
       en: 'Team: Furina C0 (FavSword R3, TOTM 4pc) + Escoffier C0 (FavLance R3, NO 4pc) + Mona C4 (TTDS R5, NO 4pc). Only Skirk damage counted. Fixed team buffs: TTDS +48% ATK, NO +20% ATK, Furina Fanfare +72% DMG, Mona Omen +52% DMG, Escoffier -15% Cryo RES. Scalings: hE×6, tE×2, Q×2, N5 combo×10, CA×6.'
     }
   },

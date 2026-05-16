@@ -251,7 +251,7 @@ const translations: any = {
     sortByAchieve: 'Сортировать по достижениям',
     sortByAbyss:   'Сортировать по прогрессу Бездны',
     sortByUpdated: 'Сортировать по дате обновления',
-    apiNote: 'Общее количество звёзд Бездны (напр. 34/36) недоступно в открытом API — отображается только достигнутый этаж и комната. Достижения и прогресс Бездны обновляются при обновлении профиля.'
+    apiNote: 'Отображение достижений и этажа в бездны ещё в разработке.'
   },
   en: {
     title: 'Traveler Profiles',
@@ -263,7 +263,7 @@ const translations: any = {
     sortByAchieve: 'Sort by achievements',
     sortByAbyss:   'Sort by Abyss progress',
     sortByUpdated: 'Sort by last updated',
-    apiNote: 'Total Abyss stars (e.g. 34/36) are not available via the public API — only the reached floor and chamber are shown. Achievements and Abyss progress update when you refresh a profile.'
+    apiNote: 'Display of achievements and abyss floor is still in development.'
   }
 }
 const t = computed(() => translations[currentLang.value])
