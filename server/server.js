@@ -509,8 +509,11 @@ app.get('/api/user/:uid', async (req, res) => {
                 artifacts: parsedArtifacts,
                 stats: { hp: c.hp, attack: c.attack, defense: c.defense, mastery: c.mastery, critRate: c.crit_rate, critDamage: c.crit_damage, er: c.er },
                 eliteStats,
-                specialDmg, specialDmgRank, // <--- Використовуємо єдині ключі
-                skillLevelA: c.skill_level_a || 0, skillLevelE: c.skill_level_e || 0, skillLevelQ: c.skill_level_q || 0
+                specialDmg, specialDmgRank,
+                skillLevelA: c.skill_level_a || 0, skillLevelE: c.skill_level_e || 0, skillLevelQ: c.skill_level_q || 0,
+                hydroDmgBonus: c.hydro_dmg_bonus || 0,
+                geoDmgBonus:   c.geo_dmg_bonus   || 0,
+                cryoDmgBonus:  c.cryo_dmg_bonus  || 0
             };
         }));
 
