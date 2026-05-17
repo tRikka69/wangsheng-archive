@@ -176,9 +176,8 @@
             <!-- Abyss: показуємо поверх і чамбер (зірки недоступні через API) -->
             <td class="td-abyss">
               <div class="abyss-block" v-if="p.tower_floor">
-                <span class="abyss-floor">{{ p.tower_floor }}</span>
-                <span class="abyss-dash">-</span>
-                <span class="abyss-chamber">{{ p.tower_level }}</span>
+                <span class="abyss-floor">{{ p.tower_floor }}-{{ p.tower_level }}</span>
+                <span class="abyss-stars" v-if="p.tower_star">★{{ p.tower_star }}</span>
               </div>
               <span v-else class="no-data">—</span>
             </td>
@@ -251,7 +250,7 @@ const translations: any = {
     sortByAchieve: 'Сортировать по достижениям',
     sortByAbyss:   'Сортировать по прогрессу Бездны',
     sortByUpdated: 'Сортировать по дате обновления',
-    apiNote: 'Отображение достижений и этажа в бездны ещё в разработке.'
+    apiNote: 'Достижения и прогресс Бездны обновляются при обновлении профиля. Количество звёзд (★) получено из playerInfo Enka API (поле towerStarIndex).'
   },
   en: {
     title: 'Traveler Profiles',
@@ -263,7 +262,7 @@ const translations: any = {
     sortByAchieve: 'Sort by achievements',
     sortByAbyss:   'Sort by Abyss progress',
     sortByUpdated: 'Sort by last updated',
-    apiNote: 'Display of achievements and abyss floor is still in development.'
+    apiNote: 'Achievements and Abyss progress update when you refresh a profile. Star count (★) is from Enka API playerInfo (towerStarIndex field).'
   }
 }
 const t = computed(() => translations[currentLang.value])
@@ -559,4 +558,6 @@ td { padding: 11px 16px; text-align: center; vertical-align: middle; }
 @media(max-width:400px){
   .data-table { min-width: 480px; }
 }
+
+.abyss-stars { font-family: var(--font-mono); font-size: .72rem; color: var(--ht-gold-light); font-weight: 700; }
 </style>

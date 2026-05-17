@@ -35,7 +35,10 @@
               <span>🏆</span><span class="pstat-val">{{ playerData.achievementNum }}</span><span class="pstat-label">{{ t.achievements }}</span>
             </div>
             <div class="pstat" v-if="playerData.towerFloor">
-              <span>🌀</span><span class="pstat-val">{{ playerData.towerFloor }}-{{ playerData.towerLevel }}</span><span class="pstat-label">{{ t.abyss }}</span>
+              <span>🌀</span>
+              <span class="pstat-val">{{ playerData.towerFloor }}-{{ playerData.towerLevel }}</span>
+              <span v-if="playerData.towerStar" class="pstat-stars">★{{ playerData.towerStar }}</span>
+              <span class="pstat-label">{{ t.abyss }}</span>
             </div>
           </div>
         </div>
@@ -65,10 +68,7 @@
                 <span class="top-text">{{ t.top }} {{ ((Number(char.specialDmgRank) / Number(char.total)) * 100).toFixed(2) }}%</span>
                 <span class="rank-text">{{ char.specialDmgRank }}/{{ char.total }}</span>
               </template>
-              <template v-else>
-                <span class="top-text">{{ t.top }} {{ ((Number(char.rank) / Number(char.total)) * 100).toFixed(2) }}%</span>
-                <span class="rank-text">{{ char.rank }}/{{ char.total }}</span>
-              </template>
+              <!-- Для звичайних персонажів без спеціального топу — не показуємо ранг -->
             </div>
           </div>
         </div>
@@ -227,11 +227,11 @@
                     </div>
                     <div class="art-substats">
                       <div class="sub-row" v-for="(sub, si) in art.substats" :key="si">
-                        <span class="sub-name">{{ getStatName(sub.id) }}</span>
-                        <div class="sub-right">
+                        <div class="sub-left">
                           <span class="sub-rolls" v-if="sub.rolls > 0" :class="getRollClass(sub.rolls)">{{ sub.rolls }}</span>
-                          <span class="sub-val" :class="{ 'sub-crit': sub.id === CR || sub.id === CD }">{{ sub.value }}</span>
+                          <span class="sub-name">{{ getStatName(sub.id) }}</span>
                         </div>
+                        <span class="sub-val" :class="{ 'sub-crit': sub.id === CR || sub.id === CD }">{{ sub.value }}</span>
                       </div>
                       <div v-if="!art.substats?.length" class="sub-empty">{{ t.hiddenStats }}</div>
                     </div>
@@ -556,7 +556,7 @@ onUnmounted(()=>{if(timerInterval)clearInterval(timerInterval);});
 .ms-name{font-size:0.82rem;color:var(--ht-text-muted);}
 .ms-val{font-family:var(--font-mono);font-size:0.9rem;font-weight:700;color:var(--ht-gold-light);}
 .art-substats{display:flex;flex-direction:column;gap:3px;}
-.sub-row{display:flex;justify-content:space-between;font-size:0.8rem;}
+.sub-row{display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;}
 .sub-name{color:var(--ht-text-muted);}
 .sub-val{font-family:var(--font-mono);font-weight:700;color:var(--ht-text);}
 .sub-val.sub-crit{color:var(--ht-accent-light);}
@@ -779,4 +779,8 @@ onUnmounted(()=>{if(timerInterval)clearInterval(timerInterval);});
 .rolls-mid  { color: var(--ht-ghost);       border-color: rgba(189,168,210,.5);  background: rgba(189,168,210,.12); }
 .rolls-high { color: var(--ht-accent-light);border-color: var(--ht-accent-dark); background: rgba(176,50,24,.15); }
 .rolls-max  { color: var(--ht-gold-light);  border-color: var(--ht-gold);        background: rgba(196,152,30,.18); text-shadow: 0 0 6px rgba(226,184,64,.4); }
+
+.sub-left { display: flex; align-items: center; gap: 4px; }
+.sub-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+.pstat-stars { font-family: var(--font-mono); font-size: .78rem; color: var(--ht-gold-light); margin-left: -2px; }
 </style>

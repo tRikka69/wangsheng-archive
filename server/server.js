@@ -163,6 +163,7 @@ app.use(express.json());
         achievement_num INTEGER DEFAULT 0,
         tower_floor INTEGER DEFAULT 0,
         tower_level INTEGER DEFAULT 0,
+        tower_star  INTEGER DEFAULT 0,
         char_key TEXT, char_name_ru TEXT, char_name_en TEXT, char_icon TEXT, char_level INTEGER,
         friendship INTEGER, constellations INTEGER, constellations_data TEXT,
         weapon_name_ru TEXT, weapon_name_en TEXT, weapon_level INTEGER, weapon_ref INTEGER, weapon_icon TEXT,
@@ -183,6 +184,7 @@ app.use(express.json());
         'achievement_num INTEGER DEFAULT 0',
         'tower_floor INTEGER DEFAULT 0',
         'tower_level INTEGER DEFAULT 0',
+        'tower_star  INTEGER DEFAULT 0',
         'constellations_data TEXT',
         'skill_level_a INTEGER DEFAULT 0',
         'skill_level_e INTEGER DEFAULT 0',
@@ -507,6 +509,7 @@ app.get('/api/user/:uid', async (req, res) => {
             const worldLevel     = user.worldLevel     ?? 0;
             const achievementNum = user.finishAchievementNum ?? user.achievementCount ?? 0;
             const towerFloor     = user.towerFloorIndex ?? 0;
+            const towerStar      = user.towerStarIndex ?? user._data?.playerInfo?.towerStarIndex ?? 0;
             const towerLevel     = user.towerLevelIndex ?? 0;
 
             for (const char of user.characters) {
@@ -577,7 +580,7 @@ app.get('/api/user/:uid', async (req, res) => {
                 await db.run(
                     `INSERT INTO builds (
                         uid, nickname, signature, player_avatar, player_level,
-                        world_level, achievement_num, tower_floor, tower_level,
+                        world_level, achievement_num, tower_floor, tower_level, tower_star,
                         char_key, char_name_ru, char_name_en, char_icon, char_level,
                         friendship, constellations, constellations_data,
                         weapon_name_ru, weapon_name_en, weapon_level, weapon_ref, weapon_icon,
@@ -589,7 +592,7 @@ app.get('/api/user/:uid', async (req, res) => {
                         nickname=excluded.nickname, signature=excluded.signature,
                         player_avatar=excluded.player_avatar, player_level=excluded.player_level,
                         world_level=excluded.world_level, achievement_num=excluded.achievement_num,
-                        tower_floor=excluded.tower_floor, tower_level=excluded.tower_level,
+                        tower_floor=excluded.tower_floor, tower_level=excluded.tower_level, tower_star=excluded.tower_star,
                         char_name_ru=excluded.char_name_ru, char_name_en=excluded.char_name_en,
                         char_icon=excluded.char_icon, char_level=excluded.char_level,
                         friendship=excluded.friendship, constellations=excluded.constellations,
@@ -605,7 +608,7 @@ app.get('/api/user/:uid', async (req, res) => {
                         updated_at=excluded.updated_at`,
                     [
                         String(user.uid), user.nickname, user.signature || '', playerAvatar, user.level,
-                        worldLevel, achievementNum, towerFloor, towerLevel,
+                        worldLevel, achievementNum, towerFloor, towerLevel, towerStar,
                         charKey, charNameRu, charNameEn, charIcon, char.level,
                         friendship, constellations, JSON.stringify(constellationsData),
                         wNameRu, wNameEn, wLevel, wRef, wIcon,
@@ -683,7 +686,7 @@ app.get('/api/user/:uid', async (req, res) => {
         res.json({
             nickname: first.nickname, level: first.player_level, signature: first.signature,
             avatar: first.player_avatar, worldLevel: first.world_level || 0,
-            achievementNum: first.achievement_num || 0, towerFloor: first.tower_floor || 0, towerLevel: first.tower_level || 0,
+            achievementNum: first.achievement_num || 0, towerFloor: first.tower_floor || 0, towerLevel: first.tower_level || 0, towerStar: first.tower_star || 0,
             nextRefreshReadyAt, characters: charactersWithEliteData
         });
 
@@ -1003,7 +1006,7 @@ app.get('/api/profiles', async (req, res) => {
 
     const sortMap = {
         achievements: 'achievement_num DESC',
-        abyss:        'tower_floor DESC, tower_level DESC',
+        abyss:        'tower_star DESC, tower_floor DESC, tower_level DESC',
         updated:      'last_updated DESC'
     };
     const orderBy = sortMap[sort] || sortMap.achievements;
@@ -1023,6 +1026,7 @@ app.get('/api/profiles', async (req, res) => {
                 MAX(achievement_num) AS achievement_num,
                 MAX(tower_floor)     AS tower_floor,
                 MAX(tower_level)     AS tower_level,
+                MAX(tower_star)      AS tower_star,
                 MAX(updated_at)      AS last_updated
             FROM builds
             GROUP BY uid
