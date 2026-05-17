@@ -63,7 +63,7 @@
             </div>
             <div class="rank-box">
               <!-- Для персонажів зі спеціальним топом — завжди показуємо спеціальний ранг -->
-              <template v-if="SPECIAL_CHARS_SET.has(char.key) && char.specialDmgRank !== null">
+              <template v-if="SPECIAL_CHARS_SET.has(char.key) && char.specialDmgRank !== null && char.specialDmgRank !== undefined && char.specialDmg">
                 <span class="rank-tag skill-tag">{{ getSpecialTag(char.key) }}</span>
                 <span class="top-text">{{ t.top }} {{ ((Number(char.specialDmgRank) / Number(char.total)) * 100).toFixed(2) }}%</span>
                 <span class="rank-text">{{ char.specialDmgRank }}/{{ char.total }}</span>
@@ -102,7 +102,7 @@
 
           <!-- ══ SPECIAL DMG PANEL ══ -->
           <div
-            v-if="activeCharacter.specialDmg !== null && activeCharacter.specialDmg !== undefined && ['Furina','Navia','Skirk','Kaedehara Kazuha'].includes(activeCharacter.key)"
+            v-if="activeCharacter.specialDmg && activeCharacter.specialDmgRank !== null && activeCharacter.specialDmgRank !== undefined && ['Furina','Navia','Skirk','Kaedehara Kazuha'].includes(activeCharacter.key)"
             class="special-dmg-panel"
           >
             <div class="sdmg-title">⚔️ {{ getLbBtnLabel(activeCharacter.key) }}</div>

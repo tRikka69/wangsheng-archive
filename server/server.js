@@ -52,92 +52,86 @@ if (process.env.NODE_ENV !== 'production') {
 // ══════════════════════════════════════════════════════════
 //  ARTIFACT ROLL COUNTER
 //
-//  Джерело: appendPropIdList в raw reliquary = список числових ID
-//  кожного рола (1 запис = 1 рол). Числові ID -> propType через
-//  ReliquaryAffixExcelConfigData.json (файл кешу genshin data).
+//  Джерело: ReliquaryAffixExcelConfigData.json від miHoYo datamine.
+//  Кожен запис: id (числовий, = одне значення рола) -> propType (назва стата).
+//  appendPropIdList в raw reliquary = список ID ролів на артефакті.
+//  Рахуємо скільки ID відповідають кожному propType = кількість ролів.
 //
-//  Fallback (якщо файл кешу недоступний): рахуємо роли через
-//  ділення значення стата на мінімальний рол (точно для 5★).
+//  Завантажується одноразово при старті сервера з Dimbreath's GitHub.
 // ══════════════════════════════════════════════════════════
 
-// Мінімальні значення ролів для 5★ артефактів
-const MIN_ROLL_VALUES = {
-    'FIGHT_PROP_CRITICAL':        2.7,   // CR %
-    'FIGHT_PROP_CRITICAL_HURT':   5.4,   // CD %
-    'FIGHT_PROP_HP_PERCENT':      4.1,   // HP%
-    'FIGHT_PROP_ATTACK_PERCENT':  4.1,   // ATK%
-    'FIGHT_PROP_DEFENSE_PERCENT': 5.1,   // DEF%
-    'FIGHT_PROP_CHARGE_EFFICIENCY': 4.5, // ER%
-    'FIGHT_PROP_ELEMENT_MASTERY': 16,    // EM flat
-    'FIGHT_PROP_HP':              209,   // HP flat
-    'FIGHT_PROP_ATTACK':          14,    // ATK flat
-    'FIGHT_PROP_DEFENSE':         16,    // DEF flat
-};
+let _relicAffixMap = null; // numericId (string) -> propType (string)
 
-// Кеш маппінгу: numericId -> propType (з файлу гри)
-let _relicAffixMap = null;
-
-function getRelicAffixMap() {
-    if (_relicAffixMap) return _relicAffixMap;
+async function loadRelicAffixMap() {
+    if (_relicAffixMap) return;
     try {
+        // Спроба 1: файл кешу enka-network-api
         const fs = require('fs');
-        const possiblePaths = [
+        const cachePaths = [
             './cache/GenshinData/ExcelBinOutput/ReliquaryAffixExcelConfigData.json',
             './cache/ExcelBinOutput/ReliquaryAffixExcelConfigData.json',
         ];
-        for (const p of possiblePaths) {
+        for (const p of cachePaths) {
             if (fs.existsSync(p)) {
                 const data = JSON.parse(fs.readFileSync(p, 'utf8'));
-                _relicAffixMap = {};
-                for (const entry of data) {
-                    if (entry.id && entry.propType) {
-                        _relicAffixMap[String(entry.id)] = entry.propType;
-                    }
-                }
-                console.log(`[ROЛИ] Завантажено ${Object.keys(_relicAffixMap).length} записів з ${p}`);
-                return _relicAffixMap;
+                _relicAffixMap = buildAffixMap(data);
+                console.log(`[РОЛИ] ✓ Завантажено ${Object.keys(_relicAffixMap).length} записів з кешу: ${p}`);
+                return;
             }
         }
+    } catch (e) {}
+
+    try {
+        // Спроба 2: завантажити з Dimbreath/AnimeGameData (GitHub)
+        console.log('[РОЛИ] Завантажую ReliquaryAffixExcelConfigData.json з GitHub...');
+        const https = require('https');
+        const data = await new Promise((resolve, reject) => {
+            https.get(
+                'https://raw.githubusercontent.com/Dimbreath/AnimeGameData/master/ExcelBinOutput/ReliquaryAffixExcelConfigData.json',
+                { timeout: 10000 },
+                (res) => {
+                    let body = '';
+                    res.on('data', d => body += d);
+                    res.on('end', () => {
+                        try { resolve(JSON.parse(body)); } catch(e) { reject(e); }
+                    });
+                }
+            ).on('error', reject).on('timeout', () => reject(new Error('timeout')));
+        });
+        _relicAffixMap = buildAffixMap(data);
+        console.log(`[РОЛИ] ✓ Завантажено ${Object.keys(_relicAffixMap).length} записів з GitHub`);
+        return;
     } catch (e) {
-        console.warn('[РОЛИ] Файл кешу не знайдено, використовую fallback');
+        console.warn('[РОЛИ] GitHub завантаження не вдалось:', e.message);
     }
-    _relicAffixMap = {}; // порожній — буде fallback
-    return _relicAffixMap;
+
+    _relicAffixMap = {}; // порожній — роли не будуть відображатись
+    console.warn('[РОЛИ] ✗ Не вдалось завантажити дані ролів');
 }
 
-function countSubstatRolls(appendPropIdList, substatPropId, substatValue) {
-    const affixMap = getRelicAffixMap();
-
-    if (appendPropIdList && appendPropIdList.length > 0 && Object.keys(affixMap).length > 0) {
-        // Точний метод: рахуємо через appendPropIdList -> propType mapping
-        let count = 0;
-        for (const numId of appendPropIdList) {
-            if (affixMap[String(numId)] === substatPropId) count++;
+function buildAffixMap(data) {
+    const map = {};
+    for (const entry of data) {
+        if (entry.id && entry.propType) {
+            map[String(entry.id)] = entry.propType;
         }
-        if (count > 0) return count;
     }
-
-    // Fallback: ділимо значення на мінімальний рол для 5★ арту
-    const minRoll = MIN_ROLL_VALUES[substatPropId];
-    if (!minRoll || substatValue === undefined || substatValue === null) return 0;
-
-    // statValue з Enka API приходить як число у "сирому" вигляді:
-    // % стати: 0.034 = 3.4% (десятковий дріб)
-    // flat стати: 14 = 14 ATK (ціле)
-    let rawVal = Number(substatValue) || 0;
-
-    // Для % статів Enka повертає значення як десятковий дріб (0.0XX)
-    const isPercent = substatPropId.includes('PERCENT') ||
-                      substatPropId === 'FIGHT_PROP_CRITICAL' ||
-                      substatPropId === 'FIGHT_PROP_CRITICAL_HURT' ||
-                      substatPropId === 'FIGHT_PROP_CHARGE_EFFICIENCY';
-
-    // Конвертуємо у % якщо потрібно
-    if (isPercent && rawVal < 1) rawVal = rawVal * 100;
-
-    const rolls = Math.round(rawVal / minRoll);
-    return Math.max(1, Math.min(rolls, 6));
+    return map;
 }
+
+function countSubstatRolls(appendPropIdList, substatPropId) {
+    if (!_relicAffixMap || !appendPropIdList || appendPropIdList.length === 0) return 0;
+    if (Object.keys(_relicAffixMap).length === 0) return 0;
+
+    let count = 0;
+    for (const numId of appendPropIdList) {
+        if (_relicAffixMap[String(numId)] === substatPropId) count++;
+    }
+    return count;
+}
+
+// Завантажуємо при старті
+loadRelicAffixMap().catch(e => console.warn('[РОЛИ]', e.message));
 
 
 const app  = express();
@@ -510,11 +504,29 @@ app.get('/api/user/:uid', async (req, res) => {
             }
 
             const playerAvatar   = getImageUrl(user.profilePicture?.icon || user.profilePicture?.picture);
-            const worldLevel     = user.worldLevel     ?? 0;
-            const achievementNum = user.finishAchievementNum ?? user.achievementCount ?? 0;
-            const towerFloor     = user.towerFloorIndex ?? 0;
-            const towerStar      = user.towerStarIndex ?? user._data?.playerInfo?.towerStarIndex ?? 0;
-            const towerLevel     = user.towerLevelIndex ?? 0;
+            const worldLevel     = user.worldLevel ?? user._data?.playerInfo?.worldLevel ?? 0;
+
+            // Achievements — rawData fallback
+            const achievementNum = user.finishAchievementNum
+                ?? user.achievements
+                ?? user._data?.playerInfo?.finishAchievementNum
+                ?? 0;
+
+            // Bezodnya — enka-network-api v4+ uses user.spiralAbyss
+            const towerFloor = user.spiralAbyss?.floor
+                ?? user.towerFloorIndex
+                ?? user._data?.playerInfo?.towerFloorIndex
+                ?? 0;
+            const towerLevel = user.spiralAbyss?.chamber
+                ?? user.towerLevelIndex
+                ?? user._data?.playerInfo?.towerLevelIndex
+                ?? 0;
+            const towerStar  = user.spiralAbyss?.stars
+                ?? user.towerStarIndex
+                ?? user._data?.playerInfo?.towerStarIndex
+                ?? 0;
+
+            console.log(`[ENKA] ${user.nickname}: AR${user.level} | Досягнень:${achievementNum} | Безодня:${towerFloor}-${towerLevel} ★${towerStar}`);
 
             for (const char of user.characters) {
                 const charNameRu = char.characterData.name.get('ru') || 'Неизвестно';
@@ -567,7 +579,7 @@ app.get('/api/user/:uid', async (req, res) => {
 
                     const substats = (flat.reliquarySubstats || []).map(sub => {
                         const stat  = formatStat(sub.appendPropId, sub.statValue || 0);
-                        const rolls = countSubstatRolls(appendPropIdList, sub.appendPropId, sub.statValue || 0);
+                        const rolls = countSubstatRolls(appendPropIdList, sub.appendPropId);
                         return { ...stat, rolls };
                     });
 
@@ -661,6 +673,12 @@ app.get('/api/user/:uid', async (req, res) => {
                 const all = await db.all(`SELECT attack, crit_rate, crit_damage, constellations, skill_level_a, skill_level_e, skill_level_q, geo_dmg_bonus, artifacts FROM builds WHERE char_key = 'Navia'`);
                 const withScores = all.map(b => ({ ...b, _s: calculateNaviaRotationDmg(b) }));
                 specialDmgRank = withScores.filter(b => b._s >= specialDmg).length;
+            } else if (c.char_key === 'Skirk') {
+                specialDmg = calculateSkirkRotationDmg(c);
+                const all = await db.all(`SELECT attack, crit_rate, crit_damage, constellations, skill_level_a, skill_level_e, skill_level_q, cryo_dmg_bonus, artifacts, weapon_ref, weapon_name_en FROM builds WHERE char_key = 'Skirk'`);
+                const withScores = all.map(b => ({ ...b, _s: calculateSkirkRotationDmg(b) }));
+                specialDmgRank = withScores.filter(b => b._s >= specialDmg).length;
+                console.log(`[SKIRK] UID:${c.uid} Score:${specialDmg?.toLocaleString()} Rank:${specialDmgRank}/${total}`);
             } else if (c.char_key === 'Kaedehara Kazuha') {
                 specialDmg = getKazuhaMastery(c);
                 const all = await db.all(`SELECT mastery FROM builds WHERE char_key = 'Kaedehara Kazuha'`);
