@@ -49,6 +49,93 @@ if (process.env.NODE_ENV !== 'production') {
         console.warn('[GENSHIN-DB] ✗ Не знайдено');
     }
 }
+// ══════════════════════════════════════════════════════════
+//  ARTIFACT ROLL COUNTER
+//
+//  Джерело: appendPropIdList в raw reliquary = список числових ID
+//  кожного рола (1 запис = 1 рол). Числові ID -> propType через
+//  ReliquaryAffixExcelConfigData.json (файл кешу genshin data).
+//
+//  Fallback (якщо файл кешу недоступний): рахуємо роли через
+//  ділення значення стата на мінімальний рол (точно для 5★).
+// ══════════════════════════════════════════════════════════
+
+// Мінімальні значення ролів для 5★ артефактів
+const MIN_ROLL_VALUES = {
+    'FIGHT_PROP_CRITICAL':        2.7,   // CR %
+    'FIGHT_PROP_CRITICAL_HURT':   5.4,   // CD %
+    'FIGHT_PROP_HP_PERCENT':      4.1,   // HP%
+    'FIGHT_PROP_ATTACK_PERCENT':  4.1,   // ATK%
+    'FIGHT_PROP_DEFENSE_PERCENT': 5.1,   // DEF%
+    'FIGHT_PROP_CHARGE_EFFICIENCY': 4.5, // ER%
+    'FIGHT_PROP_ELEMENT_MASTERY': 16,    // EM flat
+    'FIGHT_PROP_HP':              209,   // HP flat
+    'FIGHT_PROP_ATTACK':          14,    // ATK flat
+    'FIGHT_PROP_DEFENSE':         16,    // DEF flat
+};
+
+// Кеш маппінгу: numericId -> propType (з файлу гри)
+let _relicAffixMap = null;
+
+function getRelicAffixMap() {
+    if (_relicAffixMap) return _relicAffixMap;
+    try {
+        const fs = require('fs');
+        const possiblePaths = [
+            './cache/GenshinData/ExcelBinOutput/ReliquaryAffixExcelConfigData.json',
+            './cache/ExcelBinOutput/ReliquaryAffixExcelConfigData.json',
+        ];
+        for (const p of possiblePaths) {
+            if (fs.existsSync(p)) {
+                const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+                _relicAffixMap = {};
+                for (const entry of data) {
+                    if (entry.id && entry.propType) {
+                        _relicAffixMap[String(entry.id)] = entry.propType;
+                    }
+                }
+                console.log(`[ROЛИ] Завантажено ${Object.keys(_relicAffixMap).length} записів з ${p}`);
+                return _relicAffixMap;
+            }
+        }
+    } catch (e) {
+        console.warn('[РОЛИ] Файл кешу не знайдено, використовую fallback');
+    }
+    _relicAffixMap = {}; // порожній — буде fallback
+    return _relicAffixMap;
+}
+
+function countSubstatRolls(appendPropIdList, substatPropId, substatValue) {
+    const affixMap = getRelicAffixMap();
+
+    if (appendPropIdList && appendPropIdList.length > 0 && Object.keys(affixMap).length > 0) {
+        // Точний метод: рахуємо через appendPropIdList
+        let count = 0;
+        for (const numId of appendPropIdList) {
+            if (affixMap[String(numId)] === substatPropId) count++;
+        }
+        if (count > 0) return count;
+    }
+
+    // Fallback: ділимо значення на мінімальний рол
+    const isPercent = substatPropId.includes('PERCENT') ||
+                      substatPropId === 'FIGHT_PROP_CRITICAL' ||
+                      substatPropId === 'FIGHT_PROP_CRITICAL_HURT' ||
+                      substatPropId === 'FIGHT_PROP_CHARGE_EFFICIENCY';
+
+    const minRoll = MIN_ROLL_VALUES[substatPropId];
+    if (!minRoll || !substatValue) return 0;
+
+    // Значення в базі може бути рядком "70.5%" або числом 70.5
+    let numVal = parseFloat(String(substatValue).replace('%','').replace(',','.')) || 0;
+    // Якщо зберігається як десятковий (0.705), конвертуємо
+    if (isPercent && numVal < 1) numVal = numVal * 100;
+
+    const rolls = Math.round(numVal / minRoll);
+    return Math.max(0, Math.min(rolls, 6)); // обмежуємо 1-6
+}
+
+
 const app  = express();
 const port = 3000;
 const enka = new EnkaClient({ cacheDirectory: './cache' });
@@ -466,25 +553,14 @@ app.get('/api/user/:uid', async (req, res) => {
 
                 let artifactsData = [];
                 (char.artifacts || []).forEach(art => {
-                    const flat = art._data?.flat || {};
-                    const rawRel = art._data?.reliquary || art.reliquaryData || {};
+                    const flat   = art._data?.flat      || {};
+                    const rawRel = art._data?.reliquary || {};
+                    // appendPropIdList: числові ID кожного рола (1 запис = 1 рол)
+                    const appendPropIdList = rawRel.appendPropIdList || [];
 
-                    // appendPropIdList: масив ID всіх ролів (кожен запис = 1 рол в той стат)
-                    // Рахуємо скільки ролів пішло в кожен propId
-                    const rollIdList = rawRel.appendPropIdList || flat.appendPropIdList || [];
-                    const rollCounts = {};
-                    for (const propId of rollIdList) {
-                        const key = String(propId);
-                        rollCounts[key] = (rollCounts[key] || 0) + 1;
-                    }
-
-                    // Маппінг appendPropId -> FIGHT_PROP_NAME (для пошуку ролів)
-                    // Беремо з самих substats через appendPropId
                     const substats = (flat.reliquarySubstats || []).map(sub => {
-                        const stat = formatStat(sub.appendPropId, sub.statValue || 0);
-                        // Шукаємо ролі через appendPropIdList — зіставляємо propId числа
-                        // appendPropId може бути числом-кодом, rollIdList теж числа
-                        const rolls = rollCounts[String(sub.appendPropId)] || 0;
+                        const stat  = formatStat(sub.appendPropId, sub.statValue || 0);
+                        const rolls = countSubstatRolls(appendPropIdList, sub.appendPropId, sub.statValue || 0);
                         return { ...stat, rolls };
                     });
 

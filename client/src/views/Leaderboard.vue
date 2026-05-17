@@ -28,7 +28,7 @@
         </thead>
         <tbody>
           <tr
-            v-for="(char, index) in chars" :key="char.name"
+            v-for="(char, index) in filteredChars" :key="char.name"
             @click="goToDetail(char.name)" class="row"
             :class="{ 'row-top': index < 3 }"
           >
@@ -83,11 +83,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { currentLang } from '../store/lang'
 
 const chars    = ref<any[]>([])
+
+// Персонажі зі спеціальним топом (не по даті)
+const SPECIAL_CHARS_LB = new Set([
+  'Furina', 'Navia', 'Skirk', 'Kaedehara Kazuha',
+  // ← додавати нових персонажів сюди
+])
+
+// Лиши лише тих персонажів, для яких є спеціальний топ
+const filteredChars = computed(() =>
+  chars.value.filter(c => SPECIAL_CHARS_LB.has(c.name))
+)
 const router   = useRouter()
 const isLoading = ref(true)
 
