@@ -467,13 +467,34 @@ app.get('/api/user/:uid', async (req, res) => {
                 let artifactsData = [];
                 (char.artifacts || []).forEach(art => {
                     const flat = art._data?.flat || {};
+                    const rawRel = art._data?.reliquary || art.reliquaryData || {};
+
+                    // appendPropIdList: масив ID всіх ролів (кожен запис = 1 рол в той стат)
+                    // Рахуємо скільки ролів пішло в кожен propId
+                    const rollIdList = rawRel.appendPropIdList || flat.appendPropIdList || [];
+                    const rollCounts = {};
+                    for (const propId of rollIdList) {
+                        const key = String(propId);
+                        rollCounts[key] = (rollCounts[key] || 0) + 1;
+                    }
+
+                    // Маппінг appendPropId -> FIGHT_PROP_NAME (для пошуку ролів)
+                    // Беремо з самих substats через appendPropId
+                    const substats = (flat.reliquarySubstats || []).map(sub => {
+                        const stat = formatStat(sub.appendPropId, sub.statValue || 0);
+                        // Шукаємо ролі через appendPropIdList — зіставляємо propId числа
+                        // appendPropId може бути числом-кодом, rollIdList теж числа
+                        const rolls = rollCounts[String(sub.appendPropId)] || 0;
+                        return { ...stat, rolls };
+                    });
+
                     artifactsData.push({
                         equipType: equipTypeMap[flat.equipType || ''] || (flat.equipType || 'UNKNOWN'),
                         setName: { ru: art.artifactData?.set?.name?.get('ru') || 'Артефакт', en: art.artifactData?.set?.name?.get('en') || 'Artifact' },
                         icon: getImageUrl(flat.icon || art.artifactData?.icon),
                         level: art.level || 1,
                         mainstat: formatStat((flat.reliquaryMainstat || {}).mainPropId, (flat.reliquaryMainstat || {}).statValue || 0),
-                        substats: (flat.reliquarySubstats || []).map(s => formatStat(s.appendPropId, s.statValue || 0))
+                        substats
                     });
                 });
 

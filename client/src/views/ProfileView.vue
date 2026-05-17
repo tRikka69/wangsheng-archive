@@ -59,22 +59,16 @@
               <span class="badge-fship">🤍 {{ char.friendship }}</span>
             </div>
             <div class="rank-box">
-              <div v-if="(char.key === 'Furina' || char.key === 'Navia' || char.key === 'Skirk' || char.key === 'Kaedehara Kazuha') && char.specialDmgRank !== null">
-                <template v-if="getBestRankType(char) === 'special'">
-                  <span class="rank-tag skill-tag">{{ char.key === 'Kaedehara Kazuha' ? 'EM' : char.key === 'Furina' ? 'E DMG' : 'ROTATION' }}</span>
-                  <span class="top-text">{{ t.top }} {{ ((Number(char.specialDmgRank) / Number(char.total)) * 100).toFixed(2) }}%</span>
-                  <span class="rank-text">{{ char.specialDmgRank }}/{{ char.total }}</span>
-                </template>
-                <template v-else>
-                  <span class="top-text">{{ t.top }} {{ ((Number(char.rank) / Number(char.total)) * 100).toFixed(2) }}%</span>
-                  <span class="rank-text">{{ char.rank }}/{{ char.total }}</span>
-                  <span class="rank-tag hp-tag">{{ char.key === 'Furina' ? 'HP' : char.key === 'Kaedehara Kazuha' ? 'EM' : 'ATK' }}</span>
-                </template>
-              </div>
-              <div v-else>
+              <!-- Для персонажів зі спеціальним топом — завжди показуємо спеціальний ранг -->
+              <template v-if="SPECIAL_CHARS_SET.has(char.key) && char.specialDmgRank !== null">
+                <span class="rank-tag skill-tag">{{ getSpecialTag(char.key) }}</span>
+                <span class="top-text">{{ t.top }} {{ ((Number(char.specialDmgRank) / Number(char.total)) * 100).toFixed(2) }}%</span>
+                <span class="rank-text">{{ char.specialDmgRank }}/{{ char.total }}</span>
+              </template>
+              <template v-else>
                 <span class="top-text">{{ t.top }} {{ ((Number(char.rank) / Number(char.total)) * 100).toFixed(2) }}%</span>
                 <span class="rank-text">{{ char.rank }}/{{ char.total }}</span>
-              </div>
+              </template>
             </div>
           </div>
         </div>
@@ -234,7 +228,10 @@
                     <div class="art-substats">
                       <div class="sub-row" v-for="(sub, si) in art.substats" :key="si">
                         <span class="sub-name">{{ getStatName(sub.id) }}</span>
-                        <span class="sub-val" :class="{ 'sub-crit': sub.id === CR || sub.id === CD }">{{ sub.value }}</span>
+                        <div class="sub-right">
+                          <span class="sub-rolls" v-if="sub.rolls > 0" :class="getRollClass(sub.rolls)">{{ sub.rolls }}</span>
+                          <span class="sub-val" :class="{ 'sub-crit': sub.id === CR || sub.id === CD }">{{ sub.value }}</span>
+                        </div>
                       </div>
                       <div v-if="!art.substats?.length" class="sub-empty">{{ t.hiddenStats }}</div>
                     </div>
@@ -281,11 +278,20 @@ const translations: any = {
 const t = computed(() => translations[currentLang.value]);
 
 // ── Special Top helpers ─────────────────────────────
-function getBestRankType(char: any): string {
-  if (char.specialDmgRank === null || char.specialDmgRank === undefined) return 'default';
-  const defaultRatio = char.rank / char.total;
-  const specialRatio = char.specialDmgRank / char.total;
-  return specialRatio <= defaultRatio ? 'special' : 'default';
+const SPECIAL_CHARS_SET = new Set(['Furina','Navia','Skirk','Kaedehara Kazuha'])
+
+function getSpecialTag(key: string): string {
+  if (key === 'Kaedehara Kazuha') return 'EM'
+  if (key === 'Furina') return 'E DMG'
+  return 'ROTATION'
+}
+
+function getRollClass(rolls: number): string {
+  if (rolls >= 5) return 'rolls-max'
+  if (rolls >= 4) return 'rolls-high'
+  if (rolls >= 3) return 'rolls-mid'
+  if (rolls >= 2) return 'rolls-low'
+  return 'rolls-one'
 }
 // ── Конфіг спеціальних лідербордів ──
 const CHAR_LB_CONFIG: Record<string, { slug: string; labelRu: string; labelEn: string }> = {
@@ -754,4 +760,23 @@ onUnmounted(()=>{if(timerInterval)clearInterval(timerInterval);});
   .char-name { font-size: .72rem; }
   .art-card  { min-width: 195px; }
 }
+
+/* ── Artifact substat rolls ── */
+.sub-right { display: flex; align-items: center; gap: 5px; }
+.sub-rolls {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 17px; height: 17px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  font-weight: 900;
+  flex-shrink: 0;
+  line-height: 1;
+  border: 1px solid currentColor;
+}
+.rolls-one  { color: #6a6a6a;               border-color: #4a4a4a;               background: rgba(80,80,80,.15); }
+.rolls-low  { color: #a0b8d0;               border-color: #6090b0;               background: rgba(100,150,200,.12); }
+.rolls-mid  { color: var(--ht-ghost);       border-color: rgba(189,168,210,.5);  background: rgba(189,168,210,.12); }
+.rolls-high { color: var(--ht-accent-light);border-color: var(--ht-accent-dark); background: rgba(176,50,24,.15); }
+.rolls-max  { color: var(--ht-gold-light);  border-color: var(--ht-gold);        background: rgba(196,152,30,.18); text-shadow: 0 0 6px rgba(226,184,64,.4); }
 </style>

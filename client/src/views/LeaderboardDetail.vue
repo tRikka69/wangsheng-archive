@@ -14,21 +14,10 @@
       <div class="spacer"></div>
     </div>
 
-    <!-- Перемикач видів — тільки текст -->
-    <div class="view-switcher" v-if="charConfig">
-      <button
-        class="view-btn"
-        :class="{ 'view-btn-active': !currentView }"
-        @click="switchView(null)"
-      >{{ t.viewDate }}</button>
-      <button
-        class="view-btn"
-        :class="{ 'view-btn-active': currentView === charConfig.urlSlug }"
-        @click="switchView(charConfig.urlSlug)"
-      >
-        {{ charConfig.label[currentLang] || charConfig.label.en }}
-        <span class="vb-tag">{{ charConfig.hint[currentLang] || charConfig.hint.en }}</span>
-      </button>
+    <!-- Назва поточного топу (без перемикача — лише спеціальний) -->
+    <div class="view-label" v-if="charConfig">
+      <span class="vl-text">{{ charConfig.label[currentLang] || charConfig.label.en }}</span>
+      <span class="vl-tag">{{ charConfig.hint[currentLang] || charConfig.hint.en }}</span>
     </div>
 
     <div v-if="isLoading" class="empty-state">
@@ -227,7 +216,7 @@ const CHAR_RANKING_CONFIG: Record<string, CharConfig> = {
 }
 
 const charConfig    = computed<CharConfig | null>(() => CHAR_RANKING_CONFIG[charName] || null)
-const isSpecialView = computed(() => currentView.value !== null && charConfig.value !== null && currentView.value === charConfig.value.urlSlug)
+const isSpecialView = computed(() => charConfig.value !== null)
 
 // ── Локалізація ──────────────────────────────────────────
 const translations: any = {
@@ -247,7 +236,7 @@ const translations: any = {
 const t = computed(() => translations[currentLang.value])
 
 const currentViewLabel = computed(() => {
-  if (isSpecialView.value && charConfig.value) return charConfig.value.label[currentLang.value] || charConfig.value.label.en
+  if (charConfig.value) return charConfig.value.label[currentLang.value] || charConfig.value.label.en
   return t.value.viewDate
 })
 const characterIcon = computed(() => list.value?.[0]?.char_icon || '')
@@ -293,7 +282,7 @@ function goToPage(page: number) {
 
 async function loadData() {
   isLoading.value = true
-  const sortParam = isSpecialView.value && charConfig.value ? charConfig.value.sortKey : 'date'
+  const sortParam = charConfig.value ? charConfig.value.sortKey : 'date'
   const encoded   = encodeURIComponent(charName)
   console.log(`[ДЕТАЛІ] ${charName} | sort:${sortParam} page:${currentPage.value}`)
   try {
@@ -363,7 +352,18 @@ const goToPlayerBuild = (uid: string, bid: string) => {
 
 watch(currentLang, () => loadData())
 onMounted(() => {
-  currentView.value = (route.params.view as string) || null
+  // Якщо є конфіг спеціального топу — одразу відкриваємо його
+  // (вкладки "по даті" більше немає)
+  const viewParam = route.params.view as string
+  if (viewParam) {
+    currentView.value = viewParam
+  } else if (charConfig.value) {
+    // Немає slug в URL — перенаправляємо на спеціальний топ
+    currentView.value = charConfig.value.urlSlug
+    router.replace(`/leaderboard/${encodeURIComponent(charName)}/${charConfig.value.urlSlug}`)
+  } else {
+    currentView.value = null
+  }
   currentPage.value = Number(route.query.page) || 1
   loadData()
 })
@@ -631,5 +631,28 @@ td { padding: 10px 14px; text-align: center; vertical-align: middle; }
   .data-table { min-width: 380px; }
   th, td { padding: 7px 4px; font-size: .65rem; }
   .nickname { font-size: .63rem; max-width: 68px; }
+}
+
+/* View label (replaces switcher) */
+.view-label {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+  padding: 10px 16px;
+  background: var(--ht-bg-3);
+  border: 1px solid var(--ht-border);
+  border-left: 3px solid var(--ht-accent);
+  border-radius: 8px;
+  width: fit-content;
+}
+.vl-text {
+  font-family: var(--font-heading);
+  font-size: .88rem;
+  letter-spacing: .06em;
+  color: var(--ht-accent-light);
+}
+.vl-tag {
+  font-size: .65rem; color: var(--ht-accent-light);
+  background: rgba(176,50,24,.15); border: 1px solid var(--ht-accent-dark);
+  padding: 1px 7px; border-radius: 3px; font-family: var(--font-mono);
 }
 </style>
