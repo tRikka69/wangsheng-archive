@@ -109,7 +109,7 @@ function countSubstatRolls(appendPropIdList, substatPropId, substatValue) {
     const affixMap = getRelicAffixMap();
 
     if (appendPropIdList && appendPropIdList.length > 0 && Object.keys(affixMap).length > 0) {
-        // Точний метод: рахуємо через appendPropIdList
+        // Точний метод: рахуємо через appendPropIdList -> propType mapping
         let count = 0;
         for (const numId of appendPropIdList) {
             if (affixMap[String(numId)] === substatPropId) count++;
@@ -117,22 +117,26 @@ function countSubstatRolls(appendPropIdList, substatPropId, substatValue) {
         if (count > 0) return count;
     }
 
-    // Fallback: ділимо значення на мінімальний рол
+    // Fallback: ділимо значення на мінімальний рол для 5★ арту
+    const minRoll = MIN_ROLL_VALUES[substatPropId];
+    if (!minRoll || substatValue === undefined || substatValue === null) return 0;
+
+    // statValue з Enka API приходить як число у "сирому" вигляді:
+    // % стати: 0.034 = 3.4% (десятковий дріб)
+    // flat стати: 14 = 14 ATK (ціле)
+    let rawVal = Number(substatValue) || 0;
+
+    // Для % статів Enka повертає значення як десятковий дріб (0.0XX)
     const isPercent = substatPropId.includes('PERCENT') ||
                       substatPropId === 'FIGHT_PROP_CRITICAL' ||
                       substatPropId === 'FIGHT_PROP_CRITICAL_HURT' ||
                       substatPropId === 'FIGHT_PROP_CHARGE_EFFICIENCY';
 
-    const minRoll = MIN_ROLL_VALUES[substatPropId];
-    if (!minRoll || !substatValue) return 0;
+    // Конвертуємо у % якщо потрібно
+    if (isPercent && rawVal < 1) rawVal = rawVal * 100;
 
-    // Значення в базі може бути рядком "70.5%" або числом 70.5
-    let numVal = parseFloat(String(substatValue).replace('%','').replace(',','.')) || 0;
-    // Якщо зберігається як десятковий (0.705), конвертуємо
-    if (isPercent && numVal < 1) numVal = numVal * 100;
-
-    const rolls = Math.round(numVal / minRoll);
-    return Math.max(0, Math.min(rolls, 6)); // обмежуємо 1-6
+    const rolls = Math.round(rawVal / minRoll);
+    return Math.max(1, Math.min(rolls, 6));
 }
 
 
@@ -587,7 +591,7 @@ app.get('/api/user/:uid', async (req, res) => {
                         artifacts, hp, attack, defense, mastery, crit_rate, crit_damage, er,
                         skill_level_a, skill_level_e, skill_level_q,
                         hydro_dmg_bonus, geo_dmg_bonus, cryo_dmg_bonus, updated_at
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     ON CONFLICT(uid, char_key) DO UPDATE SET
                         nickname=excluded.nickname, signature=excluded.signature,
                         player_avatar=excluded.player_avatar, player_level=excluded.player_level,
