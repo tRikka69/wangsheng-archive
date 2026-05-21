@@ -173,6 +173,7 @@ app.use(express.json());
         hydro_dmg_bonus REAL DEFAULT 0,
         geo_dmg_bonus REAL DEFAULT 0,
         cryo_dmg_bonus REAL DEFAULT 0,
+        pyro_dmg_bonus REAL DEFAULT 0,
         updated_at INTEGER, UNIQUE(uid, char_key)
     )`);
 
@@ -189,7 +190,8 @@ app.use(express.json());
         'skill_level_q INTEGER DEFAULT 0',
         'hydro_dmg_bonus REAL DEFAULT 0',
         'geo_dmg_bonus REAL DEFAULT 0',
-        'cryo_dmg_bonus REAL DEFAULT 0'
+        'cryo_dmg_bonus REAL DEFAULT 0',
+        'pyro_dmg_bonus REAL DEFAULT 0'
     ];
     for (const colDef of migrationCols) {
         const colName = colDef.split(' ')[0];
@@ -410,6 +412,7 @@ const ELITE_METRIC_FN = {
     'Navia':            (b) => calculateNaviaRotationDmg(b),
     'Skirk':            (b) => calculateSkirkRotationDmg(b),
     'Kaedehara Kazuha': (b) => getKazuhaMastery(b),
+    'Arlecchino':       (b) => calculateArlecchinoRotationDmg(b),
 };
 
 async function getEliteStats(charKey, totalCount) {
@@ -418,7 +421,8 @@ async function getEliteStats(charKey, totalCount) {
         const allBuilds = await db.all(
             `SELECT id, hp, attack, defense, mastery, crit_rate, crit_damage, er,
                     constellations, skill_level_e, skill_level_a, skill_level_q,
-                    hydro_dmg_bonus, geo_dmg_bonus, cryo_dmg_bonus, artifacts
+                    hydro_dmg_bonus, geo_dmg_bonus, cryo_dmg_bonus, pyro_dmg_bonus,
+                    weapon_name_en, weapon_ref, artifacts
              FROM builds WHERE char_key = ?`,
             [charKey]
         );
@@ -541,6 +545,7 @@ app.get('/api/user/:uid', async (req, res) => {
                 const hydroDmgBonus = extractElementDmgBonus(char, 42);
                 const geoDmgBonus   = extractElementDmgBonus(char, 45);
                 const cryoDmgBonus  = extractElementDmgBonus(char, 46);
+                const pyroDmgBonus  = extractElementDmgBonus(char, 40);
 
                 let constellationsData = [];
                 try {
@@ -602,8 +607,8 @@ app.get('/api/user/:uid', async (req, res) => {
                         weapon_name_ru, weapon_name_en, weapon_level, weapon_ref, weapon_icon,
                         artifacts, hp, attack, defense, mastery, crit_rate, crit_damage, er,
                         skill_level_a, skill_level_e, skill_level_q,
-                        hydro_dmg_bonus, geo_dmg_bonus, cryo_dmg_bonus, updated_at
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                        hydro_dmg_bonus, geo_dmg_bonus, cryo_dmg_bonus, pyro_dmg_bonus, updated_at
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     ON CONFLICT(uid, char_key) DO UPDATE SET
                         nickname=excluded.nickname, signature=excluded.signature,
                         player_avatar=excluded.player_avatar, player_level=excluded.player_level,
@@ -620,7 +625,8 @@ app.get('/api/user/:uid', async (req, res) => {
                         mastery=excluded.mastery, crit_rate=excluded.crit_rate,
                         crit_damage=excluded.crit_damage, er=excluded.er,
                         skill_level_a=excluded.skill_level_a, skill_level_e=excluded.skill_level_e, skill_level_q=excluded.skill_level_q,
-                        hydro_dmg_bonus=excluded.hydro_dmg_bonus, geo_dmg_bonus=excluded.geo_dmg_bonus, cryo_dmg_bonus=excluded.cryo_dmg_bonus,
+                        hydro_dmg_bonus=excluded.hydro_dmg_bonus, geo_dmg_bonus=excluded.geo_dmg_bonus,
+                        cryo_dmg_bonus=excluded.cryo_dmg_bonus, pyro_dmg_bonus=excluded.pyro_dmg_bonus,
                         updated_at=excluded.updated_at`,
                     [
                         String(user.uid), user.nickname, user.signature || '', playerAvatar, user.level,
@@ -632,7 +638,7 @@ app.get('/api/user/:uid', async (req, res) => {
                         stats.hp, stats.attack, stats.defense, stats.mastery,
                         stats.crit_rate, stats.crit_damage, stats.er,
                         skillLevelA, skillLevelE, skillLevelQ,
-                        hydroDmgBonus, geoDmgBonus, cryoDmgBonus, now
+                        hydroDmgBonus, geoDmgBonus, cryoDmgBonus, pyroDmgBonus, now
                     ]
                 );
             }
@@ -685,6 +691,17 @@ app.get('/api/user/:uid', async (req, res) => {
                 const withScores = all.map(b => ({ ...b, _s: getKazuhaMastery(b) }));
                 specialDmgRank = withScores.filter(b => b._s >= specialDmg).length;
                 console.log(`[KAZUHA] UID:${c.uid} EM:${specialDmg} Rank:${specialDmgRank}/${total}`);
+            } else if (c.char_key === 'Arlecchino') {
+                specialDmg = calculateArlecchinoRotationDmg(c);
+                const all = await db.all(
+                    `SELECT attack, hp, crit_rate, crit_damage, constellations,
+                            skill_level_a, skill_level_e, skill_level_q,
+                            pyro_dmg_bonus, artifacts, weapon_name_en, weapon_ref
+                     FROM builds WHERE char_key = 'Arlecchino'`
+                );
+                const withScores = all.map(b => ({ ...b, _s: calculateArlecchinoRotationDmg(b) }));
+                specialDmgRank = withScores.filter(b => b._s >= specialDmg).length;
+                console.log(`[ARLE] UID:${c.uid} Score:${specialDmg?.toLocaleString()} Rank:${specialDmgRank}/${total}`);
             }
 
             return {
@@ -748,7 +765,7 @@ const SLUG_TO_SORT = {
     'rotation_1':     'rotation_dmg',
     'rotation_skirk': 'skirk_rotation',
     'em_top':         'em_sort',         // Kazuha EM ranking
-    // ← додавати нових персонажів сюди
+    'rotation_arle':  'arle_rotation',   // Arlecchino rotation DMG
 };
 
 
@@ -946,11 +963,194 @@ function getKazuhaMastery(build) {
     return Math.round(Number(build.mastery) || 0);
 }
 
+// ══════════════════════════════════════════════════════════
+//  ARLECCHINO — Rotation DMG Calculator
+//
+//  Team: Citlali C0 (TTDS R5, 4pc Scroll) +
+//        Xilonen C0 (FavSword R3, 4pc AP) +
+//        Bennett C6 (Alley Flash R1, 4pc Noblesse)
+//
+//  Ротація (4 лупи): E → Bennett EQ → Xilonen EN2 → Citlali (N1)EQ →
+//    Arle CA-cancel/dash → 5×[wait N3D] → N2 → (при потребі ще NA)
+//
+//  Лише урон Арлекіно. Командні бафи фіксовані.
+//
+//  A1 пасивка: кожен NA/CA хіт додає +1% від max HP за кожен 1% Bond of Life
+//  (max 145% BoL = +145% max HP до кожного хіту).
+//
+//  Фоловані масштаби (datamine lv9):
+//    N3D = N1+N2+N3×2 = 349.3%, N2 = 201.7%, CA = 161.0%, E = 314%
+// ══════════════════════════════════════════════════════════
+const ARLE_FALLBACK_SCALINGS = {
+    // N3D = N1+N2+N3(×2 hits), % of ATK — talent levels 1-13
+    n3d: [2.078, 2.244, 2.411, 2.595, 2.763, 2.931, 3.137, 3.347, 3.493, 3.731, 3.969, 4.220, 4.489],
+    // N2 = N1+N2
+    n2:  [1.200, 1.295, 1.392, 1.499, 1.595, 1.692, 1.811, 1.932, 2.017, 2.154, 2.291, 2.436, 2.592],
+    // CA — Balemoon Bloodfire (early-cancel in C0 rotation; used fully at C1+ only)
+    ca:  [0.958, 1.034, 1.111, 1.197, 1.274, 1.351, 1.446, 1.543, 1.610, 1.720, 1.830, 1.945, 2.069],
+    // E: slash + 3 Blood-Debt Directives combined
+    e:   [1.866, 2.013, 2.162, 2.329, 2.483, 2.634, 2.820, 3.008, 3.140, 3.354, 3.567, 3.797, 4.035],
+};
+let _arleScalingCache = null;
+function getArleScalings() {
+    if (_arleScalingCache) return _arleScalingCache;
+    _arleScalingCache = ARLE_FALLBACK_SCALINGS;
+    return ARLE_FALLBACK_SCALINGS;
+}
+
+function calculateArlecchinoRotationDmg(build) {
+    const {
+        attack, hp, crit_rate, crit_damage, constellations,
+        skill_level_a, skill_level_e, skill_level_q,
+        pyro_dmg_bonus, artifacts, weapon_name_en, weapon_ref
+    } = build;
+
+    if (!attack || attack === 0) return 0;
+
+    // ── 1. Ефективні рівні талантів ──
+    // C3: +3 рівні E  |  C5: +3 рівні Q
+    const effA = Math.max(0, Math.min((skill_level_a || 1) - 1, 12));
+    const effE = Math.max(0, Math.min((skill_level_e || 1) - 1 + (constellations >= 3 ? 3 : 0), 12));
+
+    const sc = getArleScalings();
+    const n3dMult = sc.n3d[effA] || 3.493;
+    const n2Mult  = sc.n2[effA]  || 2.017;
+    const caMult  = sc.ca[effA]  || 1.610;
+    const eMult   = sc.e[effE]   || 3.140;
+
+    // ── 2. Бонуси від артефактів ──
+    let artSetDmgBonus  = 0; // елемент/загальний DMG%
+    let artSetNaBonus   = 0; // NA DMG%
+    let artSetAtkBonus  = 0; // ATK%
+    let artSetCritBonus = 0; // CRIT Rate
+
+    try {
+        const arts = typeof artifacts === 'string' ? JSON.parse(artifacts) : (artifacts || []);
+        let whimsyCount = 0, cwCount = 0, gladCount = 0, shiCount = 0, mhCount = 0;
+        arts.forEach(a => {
+            const name = (a.setName?.en || '').toLowerCase();
+            if (name.includes('harmonic') || name.includes('whimsy'))                         whimsyCount++;
+            if (name.includes('crimson witch') || name.includes('crimson witch of flames'))   cwCount++;
+            if (name.includes('gladiator'))                                                   gladCount++;
+            if (name.includes('shimenawa'))                                                   shiCount++;
+            if (name.includes('marechaussee') || name.includes('hunter'))                    mhCount++;
+        });
+        // Fragment of Harmonic Whimsy 2pc: +18% ATK; 4pc: BoL змінюється → 3 стаки × 18% = +54% ATK
+        if      (whimsyCount >= 4) artSetAtkBonus += 0.54;
+        else if (whimsyCount >= 2) artSetAtkBonus += 0.18;
+        // Crimson Witch 2pc: +15% Pyro DMG; 4pc: +15% Pyro + у Citlali команді Melt/Vap рідко
+        if      (cwCount >= 4) artSetDmgBonus += 0.15;
+        else if (cwCount >= 2) artSetDmgBonus += 0.15;
+        // Gladiator 2pc: +18% ATK; 4pc: NA +35%
+        if      (gladCount >= 4) { artSetAtkBonus += 0.18; artSetNaBonus += 0.35; }
+        else if (gladCount >= 2) { artSetAtkBonus += 0.18; }
+        // Shimenawa 2pc: +18% ATK; 4pc: NA/CA +50% (після E, -15 energy на 10s)
+        if      (shiCount >= 4) { artSetAtkBonus += 0.18; artSetNaBonus += 0.50; }
+        else if (shiCount >= 2) { artSetAtkBonus += 0.18; }
+        // Marechaussee Hunter 4pc: BoL флуктуює → 3 стаки × 12% CR = +36%
+        if      (mhCount >= 4) artSetCritBonus += 0.36;
+        else if (mhCount >= 2) artSetCritBonus += 0.12;
+    } catch (e) {}
+
+    // ── 3. Зброя ──
+    let weaponDmgBonus = 0;
+    const wName = (weapon_name_en || '').toLowerCase();
+    if (wName.includes('crimson moon') || wName.includes('semblance')) {
+        // Crimson Moon's Semblance: при BoL ≥ 30%, кожен стак дає +12×R% DMG × 2
+        // Припускаємо 4 стаки при активному BoL (типово в ротації)
+        const ref = Math.max(1, Math.min(weapon_ref || 1, 5));
+        const perStack = (0.12 + (ref - 1) * 0.02) * 2; // R1=24%, R5=40% per stack
+        weaponDmgBonus = 4 * perStack;
+    }
+
+    // ── 4. Константні бафи команди ──
+    // Bennett C6 Q lv9: ATK = 119.6% × (182 base char ATK + 620 Alley Flash base ATK)
+    const bennettFlatAtk = (182 + 620) * 1.196; // ≈ 959 ATK
+    // Bennett 4pc Noblesse: +20% ATK
+    const noblesse = 0.20;
+    // TTDS R5 (Citlali): +48% ATK до наступного персонажа після свапу → Арлекіно
+    const ttds = 0.48;
+    // Citlali 4pc Scroll of the Hero of Cinder City:
+    //   Коли cryo застосовано до ворога → +24% Pyro DMG (та інших) для команди
+    const scrollBuff = 0.24;
+    // Xilonen 4pc Archaic Petra:
+    //   Підбираємо pyro crystallize shard → +35% Pyro DMG для команди на 10s
+    const apBuff = 0.35;
+
+    // ── 5. Повний DMG бонус ──
+    // pyro_dmg_bonus зі статів персонажа (з fightPropMap, включає гоблет + пасивки + 2pc сети)
+    // Якщо поле 0 (старий запис без колонки) — fallback через артефакти
+    let charPyroDmg = pyro_dmg_bonus || 0;
+    if (!charPyroDmg) {
+        try {
+            const arts = typeof artifacts === 'string' ? JSON.parse(artifacts) : (artifacts || []);
+            const goblet = arts.find(a => a.equipType === 'Кубок пространства');
+            if (goblet?.mainstat?.id === 'FIGHT_PROP_FIRE_ADD_HURT') {
+                charPyroDmg = parseFloat(goblet.mainstat.value) / 100 || 0.466;
+            }
+        } catch (e) {}
+    }
+
+    const totalDmgBonus = charPyroDmg + scrollBuff + apBuff + artSetDmgBonus + weaponDmgBonus;
+
+    // ── 6. Ефективний ATK (з командними бафами) ──
+    const effAtk = (attack + bennettFlatAtk) * (1 + noblesse + ttds + artSetAtkBonus);
+
+    // ── 7. A1 пасивка — Bond of Life ──
+    // Max 145% BoL. C2 утримує стабільніше.
+    const bondOfLife = constellations >= 2 ? 1.45 : (constellations >= 1 ? 1.30 : 1.15);
+    const a1PerHit   = (hp || 0) * bondOfLife;
+
+    // ── 8. Крит множник ──
+    let cr = Math.min(((crit_rate || 0) / 100) + artSetCritBonus, 1);
+    if (constellations >= 4) cr = Math.min(cr + 0.10, 1); // C4: +10% CRIT Rate
+    const cd       = (crit_damage || 0) / 100;
+    const critMult = 1 + cr * cd;
+
+    // ── 9. DEF та RES ──
+    const defMult = 90 / (90 + 100); // Арлекіно Lv90 vs Enemy Lv100 ≈ 0.4737
+    const resMult = 1 - 0.10;        // 10% Pyro RES = ×0.90
+
+    // ── 10. Підрахунок дій за ротацію (4 лупи) ──
+    // Per loop: 5×N3D + N2 кінцевих NA
+    // Кількість індивідуальних NA хітів per loop: 5×4 + 2 = 22 (N3D має 4 хіти: N1,N2,N3a,N3b)
+    // CA early_cancel (C0): DMG=0 (до ворога не долітає); C1+: CA з +100% DMG
+    const naAtkMult4loops  = (5 * n3dMult + n2Mult) * 4; // сумарний ATK% множник
+    const naHitCount4loops = 22 * 4;                      // для A1 flat DMG
+    const eAtkMult4loops   = eMult * 4;
+
+    // CA: при C1+ повноцінно б'є з +100% DMG bonus; C0 = 0 DMG (early cancel)
+    const caDmgBonus4loops = constellations >= 1 ? (1 + 1.0) : 0; // C1: +100% DMG на CA
+
+    // ── 11. Розрахунок DMG ──
+    // NA: ATK-компонент + A1 HP-компонент
+    const naDmgAtk = effAtk * naAtkMult4loops * (1 + totalDmgBonus + artSetNaBonus) * critMult * defMult * resMult;
+    const naDmgA1  = a1PerHit * naHitCount4loops * (1 + totalDmgBonus + artSetNaBonus) * critMult * defMult * resMult;
+
+    // CA: лише якщо C1+; A1 також діє на CA
+    const caDmgAtk = constellations >= 1
+        ? effAtk * caMult * 4 * caDmgBonus4loops * (1 + totalDmgBonus + artSetNaBonus) * critMult * defMult * resMult
+        : 0;
+    const caDmgA1 = constellations >= 1
+        ? a1PerHit * 4 * caDmgBonus4loops * (1 + totalDmgBonus) * critMult * defMult * resMult
+        : 0;
+
+    // E: без A1 (не є NA/CA)
+    const eDmg = effAtk * eAtkMult4loops * (1 + totalDmgBonus) * critMult * defMult * resMult;
+
+    const total = naDmgAtk + naDmgA1 + caDmgAtk + caDmgA1 + eDmg;
+
+    console.log(`[ARLE] ATK:${Math.round(effAtk)} Pyro:${(charPyroDmg*100).toFixed(0)}% WeapBonus:${(weaponDmgBonus*100).toFixed(0)}% CR:${(cr*100).toFixed(0)}% CD:${(cd*100).toFixed(0)}% HP:${hp} BoL:${(bondOfLife*100).toFixed(0)}% = ${Math.round(total/1000)}k`);
+    return Math.round(total);
+}
+
+
 const CHAR_SORT_FUNCTIONS = {
     'Furina': { 'skill_dmg':        calculateFurinaSkillDmg      },
     'Navia':  { 'rotation_dmg':     calculateNaviaRotationDmg    },
     'Skirk':  { 'skirk_rotation':   calculateSkirkRotationDmg    },
     'Kaedehara Kazuha': { 'em_sort':           getKazuhaMastery             },
+    'Arlecchino':       { 'arle_rotation':     calculateArlecchinoRotationDmg },
 };
 
 const LB_SELECT_FIELDS = `
@@ -958,7 +1158,8 @@ const LB_SELECT_FIELDS = `
     char_icon, artifacts, crit_rate, crit_damage, updated_at as last_ms, hp, attack,
     mastery,
     constellations, skill_level_a, skill_level_e, skill_level_q,
-    hydro_dmg_bonus, geo_dmg_bonus, cryo_dmg_bonus
+    hydro_dmg_bonus, geo_dmg_bonus, cryo_dmg_bonus, pyro_dmg_bonus,
+    weapon_name_en, weapon_ref
 `;
 
 app.get('/api/leaderboard/:name', async (req, res) => {

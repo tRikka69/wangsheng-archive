@@ -74,7 +74,7 @@
                 <div class="player-info">
                   <span class="nickname">{{ player.nickname }}</span>
                   <span v-if="isSpecialView" class="player-detail">
-                    E lv.{{ getEffectiveSkillLevel(player) }}
+                    {{ getTalentLabel(player) }}
                   </span>
                 </div>
               </div>
@@ -213,6 +213,16 @@ const CHAR_RANKING_CONFIG: Record<string, CharConfig> = {
       en: 'Ranking by Elemental Mastery value. Higher EM = higher rank. EM increases Swirl damage and the DMG bonus granted to allies via A4 passive.'
     }
   },
+  'Arlecchino': {
+    urlSlug: 'rotation_arle', sortKey: 'arle_rotation',
+    label:   { ru: 'Урон ротации',       en: 'Rotation DMG'        },
+    hint:    { ru: 'Arle Rotation',       en: 'Arle Rotation'       },
+    colLabel:{ ru: 'Ротація DMG',         en: 'Rotation DMG'        },
+    note: {
+      ru: 'Команда: Citlali C0 (TTDS R5, 4pc Scroll) + Xilonen C0 (FavSword R3, 4pc AP) + Bennett C6 (Alley Flash R1, 4pc Noblesse). Считается только урон Арлекіно. Фиксированные бафы команди: TTDS +48% ATK, Noblesse +20% ATK, Bennett Q ~959 ATK, Scroll +24% Pyro DMG, AP +35% Pyro DMG. Учтено: ATK, HP (A1 пасивка: +145% HP per NA hit at max BoL), Pyro DMG, крити, С1-С6, рівень E/NA, бонус сетів (Whimsy, Gladiator, Shimenawa, Marechaussee, CW), зброя (Crimson Moon's Semblance).',
+      en: 'Team: Citlali C0 (TTDS R5, 4pc Scroll) + Xilonen C0 (FavSword R3, 4pc AP) + Bennett C6 (Alley Flash R1, 4pc Noblesse). Only Arlecchino damage counted. Fixed team buffs: TTDS +48% ATK, Noblesse +20% ATK, Bennett Q ~959 flat ATK, Scroll +24% Pyro DMG, AP +35% Pyro DMG. Includes: ATK, HP (A1 passive: +145% max HP per NA hit at max Bond of Life), Pyro DMG bonus, crits, C1–C6, E/NA talent levels, set bonuses (Whimsy 4pc, Gladiator 4pc, Shimenawa 4pc, Marechaussee 4pc, Crimson Witch), weapon passive (Crimson Moon\'s Semblance).'
+    }
+  },
 }
 
 const charConfig    = computed<CharConfig | null>(() => CHAR_RANKING_CONFIG[charName] || null)
@@ -336,6 +346,14 @@ function getCVColor(cv: number) {
 function getEffectiveSkillLevel(p: any): number {
   const base = p.skill_level_e || 1;
   return p.constellations >= 3 ? Math.min(base + 3, 13) : base;
+}
+function getTalentLabel(p: any): string {
+  if (charName === 'Arlecchino') {
+    const lvA = p.skill_level_a || 1;
+    const lvE = p.constellations >= 3 ? Math.min((p.skill_level_e || 1) + 3, 13) : (p.skill_level_e || 1);
+    return `NA lv.${lvA} · E lv.${lvE}`;
+  }
+  return `E lv.${getEffectiveSkillLevel(p)}`;
 }
 function formatDmg(val: number | null | undefined): string {
   if(!val||val===0)return '—';
