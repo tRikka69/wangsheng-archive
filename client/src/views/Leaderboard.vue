@@ -91,8 +91,7 @@ const chars    = ref<any[]>([])
 
 // Персонажі зі спеціальним топом (не по даті)
 const SPECIAL_CHARS_LB = new Set([
-  'Furina', 'Navia', 'Skirk', 'Kaedehara Kazuha',
-  // ← додавати нових персонажів сюди
+  'Furina', 'Navia', 'Skirk', 'Kaedehara Kazuha', 'Arlecchino',
 ])
 
 // Лиши лише тих персонажів, для яких є спеціальний топ

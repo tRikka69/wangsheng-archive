@@ -717,7 +717,8 @@ app.get('/api/user/:uid', async (req, res) => {
                 skillLevelA: c.skill_level_a || 0, skillLevelE: c.skill_level_e || 0, skillLevelQ: c.skill_level_q || 0,
                 hydroDmgBonus: c.hydro_dmg_bonus || 0,
                 geoDmgBonus:   c.geo_dmg_bonus   || 0,
-                cryoDmgBonus:  c.cryo_dmg_bonus  || 0
+                cryoDmgBonus:  c.cryo_dmg_bonus  || 0,
+                pyroDmgBonus:  c.pyro_dmg_bonus  || 0
             };
         }));
 

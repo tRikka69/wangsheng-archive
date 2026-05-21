@@ -90,7 +90,7 @@
 
             <div class="panel-header-right">
               <button
-                v-if="['Furina','Navia','Skirk','Kaedehara Kazuha'].includes(activeCharacter.key)"
+                v-if="['Furina','Navia','Skirk','Kaedehara Kazuha','Arlecchino'].includes(activeCharacter.key)"
                 @click="openSpecialLeaderboard"
                 class="leaderboard-link-btn"
               >
@@ -102,7 +102,7 @@
 
           <!-- ══ SPECIAL DMG PANEL ══ -->
           <div
-            v-if="activeCharacter.specialDmg && activeCharacter.specialDmgRank !== null && activeCharacter.specialDmgRank !== undefined && ['Furina','Navia','Skirk','Kaedehara Kazuha'].includes(activeCharacter.key)"
+            v-if="activeCharacter.specialDmg && activeCharacter.specialDmgRank !== null && activeCharacter.specialDmgRank !== undefined && ['Furina','Navia','Skirk','Kaedehara Kazuha','Arlecchino'].includes(activeCharacter.key)"
             class="special-dmg-panel"
           >
             <div class="sdmg-title">⚔️ {{ getLbBtnLabel(activeCharacter.key) }}</div>
@@ -133,10 +133,18 @@
                   <span class="sdmg-label">{{ currentLang === 'ru' ? 'Крио бонус' : 'Cryo Bonus' }}</span>
                   <span class="sdmg-stat" style="color:#a0d8f0">{{ ((activeCharacter.cryoDmgBonus || 0) * 100).toFixed(1) }}%</span>
                 </div>
+                <div class="sdmg-block" v-if="activeCharacter.key === 'Arlecchino'">
+                  <span class="sdmg-label">{{ currentLang === 'ru' ? 'Пиро бонус' : 'Pyro Bonus' }}</span>
+                  <span class="sdmg-stat" style="color:#f07040">{{ ((activeCharacter.pyroDmgBonus || 0) * 100).toFixed(1) }}%</span>
+                </div>
                 <div class="sdmg-divider"></div>
-                <div class="sdmg-block">
+                <div class="sdmg-block" v-if="activeCharacter.key !== 'Arlecchino'">
                   <span class="sdmg-label">{{ currentLang === 'ru' ? 'Эфф. E' : 'Eff. E Lv.' }}</span>
                   <span class="sdmg-stat">{{ getEffectiveSkillLevel(activeCharacter) }}</span>
+                </div>
+                <div class="sdmg-block" v-if="activeCharacter.key === 'Arlecchino'">
+                  <span class="sdmg-label">NA / E lv.</span>
+                  <span class="sdmg-stat">{{ activeCharacter.skillLevelA || 1 }} / {{ getEffectiveSkillLevel(activeCharacter) }}</span>
                 </div>
               </template>
             </div>
@@ -278,7 +286,7 @@ const translations: any = {
 const t = computed(() => translations[currentLang.value]);
 
 // ── Special Top helpers ─────────────────────────────
-const SPECIAL_CHARS_SET = new Set(['Furina','Navia','Skirk','Kaedehara Kazuha'])
+const SPECIAL_CHARS_SET = new Set(['Furina','Navia','Skirk','Kaedehara Kazuha','Arlecchino'])
 
 function getSpecialTag(key: string): string {
   if (key === 'Kaedehara Kazuha') return 'EM'
@@ -295,10 +303,11 @@ function getRollClass(rolls: number): string {
 }
 // ── Конфіг спеціальних лідербордів ──
 const CHAR_LB_CONFIG: Record<string, { slug: string; labelRu: string; labelEn: string }> = {
-  'Furina': { slug: 'skill',           labelRu: 'Топ по E DMG',    labelEn: 'E DMG Leaderboard'    },
-  'Navia':  { slug: 'rotation_1',      labelRu: 'Топ ротации',     labelEn: 'Rotation Leaderboard' },
-  'Skirk':  { slug: 'rotation_skirk',  labelRu: 'Топ ротации',     labelEn: 'Rotation Leaderboard' },
-  'Kaedehara Kazuha': { slug: 'em_top',          labelRu: 'Топ по EM',       labelEn: 'EM Leaderboard'       },
+  'Furina':           { slug: 'skill',          labelRu: 'Топ по E DMG',    labelEn: 'E DMG Leaderboard'    },
+  'Navia':            { slug: 'rotation_1',     labelRu: 'Топ ротации',     labelEn: 'Rotation Leaderboard' },
+  'Skirk':            { slug: 'rotation_skirk', labelRu: 'Топ ротации',     labelEn: 'Rotation Leaderboard' },
+  'Kaedehara Kazuha': { slug: 'em_top',         labelRu: 'Топ по EM',       labelEn: 'EM Leaderboard'       },
+  'Arlecchino':       { slug: 'rotation_arle',  labelRu: 'Топ ротации',     labelEn: 'Rotation Leaderboard' },
 }
 
 function getLbBtnLabel(key: string): string {
